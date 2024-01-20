@@ -18,7 +18,9 @@ app.post('/upload-video', upload.single('video'), async (req, res) => {
     console.log('Received video upload request');
     const videoBlob = req.file.buffer;
     console.log('Video blob received:', videoBlob);
-    const videoFilePath = './uploads/test.mp4';
+    const timestamp = Date.now();
+    const videoFileName = `video_${timestamp}.webm`;
+    const videoFilePath = `./uploads/${videoFileName}`;
     require('fs').writeFileSync(videoFilePath, videoBlob);
     res.status(200).send('Video uploaded successfully');
   } catch (error) {
