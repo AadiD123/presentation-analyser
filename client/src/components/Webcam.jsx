@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import useSocket from "../hooks/socket";
 import { extMap, sortAndFilterEmotions } from "../utils/emotionFilter";
+import axios from 'axios';
 
 export default function WebcamVideo() {
   const webcamRef = useRef(null);
@@ -9,7 +10,8 @@ export default function WebcamVideo() {
   const [capturing, setCapturing] = useState(false);
   const cap2 = useRef(false)
   const [webcam, setWebcam] = useState(false);
-  const [recordedChunks, setRecordedChunks] = useState([]);
+  var chunks = [];
+
 
   const getFrame = useCallback(() => {
     if (webcamRef !== null && webcamRef.current !== null) {
@@ -40,40 +42,40 @@ export default function WebcamVideo() {
 
   
 
-  const handleDataAvailable = useCallback(
-    ({ data }) => {
-      if (data.size > 0) {
-        setRecordedChunks((prev) => prev.concat(data));
-      }
-    },
-    [setRecordedChunks]
-  );
-
   const handleStartCaptureClick = useCallback(() => {
+
     setCapturing(true);
     cap2.current = true
-    mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
-      mimeType: "video/webm",
-    });
-    mediaRecorderRef.current.addEventListener(
-      "dataavailable",
-      handleDataAvailable
-    );
+
+    const stream = webcamRef.current.stream;
+    mediaRecorderRef.current = new MediaRecorder(stream);
+
+    mediaRecorderRef.current.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        chunks.push(event.data);
+      }
+    };
+
+    mediaRecorderRef.current.onstop = () => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      sendVideoToServer(blob);
+    };
+
     mediaRecorderRef.current.start();
-  }, [webcamRef, setCapturing, mediaRecorderRef, handleDataAvailable]);
+  }, [webcamRef, mediaRecorderRef]);
 
   const handleStopCaptureClick = useCallback(() => {
     mediaRecorderRef.current.stop();
     setCapturing(false);
     cap2.current = false
-    if (recordedChunks.length) {
-      sendVideoToServer(recordedChunks);
+    if (chunks.length) {
+      sendVideoToServer(chunks);
     }
-  }, [mediaRecorderRef, setCapturing, recordedChunks]);
+  }, [mediaRecorderRef, setCapturing, chunks]);
 
   const handleDownload = useCallback(() => {
-    if (recordedChunks.length) {
-      const blob = new Blob(recordedChunks, {
+    if (chunks.length) {
+      const blob = new Blob(chunks, {
         type: "video/webm",
       });
       const url = URL.createObjectURL(blob);
@@ -84,25 +86,44 @@ export default function WebcamVideo() {
       a.download = "react-webcam-stream-capture.webm";
       a.click();
       window.URL.revokeObjectURL(url);
-      setRecordedChunks([]);
+      chunks = [];
     }
-  }, [recordedChunks]);
+  }, [chunks]);
 
-  const handleUpload = async () => {
+  const sendVideoToServer = async (blob) => {
     try {
       const formData = new FormData();
-      formData.append('video', selectedFile);
-
-      await axios.post('http://localhost:3000/upload-video', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      console.log('Video uploaded successfully!');
+      formData.append('video', blob, 'recorded-video.webm');
+      
+      const {data} = await axios.post('http://localhost:3000/upload-video', formData);
+      console.log(data);
     } catch (error) {
-      console.error('Error uploading video:', error.message);
+      console.error('Error uploading video:', error);
     }
+  };
+
+  const startRecording = () => {
+    console.log("Starting recording");
+    const stream = webcamRef.current.stream;
+    mediaRecorderRef.current = new MediaRecorder(stream);
+
+    mediaRecorderRef.current.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        chunks.push(event.data);
+      }
+    };
+
+    mediaRecorderRef.current.onstop = () => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      sendVideoToServer(blob);
+    };
+
+    mediaRecorderRef.current.start();
+  };
+
+  const stopRecording = () => {
+    console.log("Stopping recording");
+    mediaRecorderRef.current.stop();
   };
 
 
@@ -139,7 +160,8 @@ export default function WebcamVideo() {
           videoConstraints={videoConstraints}
           className="max-w-lg self-center mt-10 rounded-md"
         />
-
+        <button onClick={startRecording}>Start Recording</button>
+      <button onClick={stopRecording}>Stop Recording</button>
         <div className="mt-12">
           {capturing ? (
             <button className="btn bg-red-500" onClick={handleStopCaptureClick}>
@@ -152,7 +174,7 @@ export default function WebcamVideo() {
               </button>
             </>
           )}
-          {recordedChunks.length > 0 ? (
+          {chunks.length > 0 ? (
             <button className="btn ml-2" onClick={handleDownload}>
               Download
             </button>
