@@ -98,25 +98,23 @@ export default function WebcamVideo() {
     }
   }, [recordedChunks]);
 
-  // const sendVideoToServer = async (videoChunks) => {
-  //   const blob = new Blob(videoChunks, { type: "video/webm" });
-  //   console.log("Sending video to server", blob);
+  const handleUpload = async () => {
+    try {
+      const formData = new FormData();
+      formData.append('video', selectedFile);
 
-  //   var formData = new FormData();
+      await axios.post('http://localhost:3000/upload-video', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-  //   // Append the Blob with correct type and filename
-  //   formData.append("video", blob, "video.webm");
+      console.log('Video uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading video:', error.message);
+    }
+  };
 
-  //   try {
-  //     console.log("sending");
-  //     await fetch("http://localhost:3000/upload-video", {
-  //       method: "POST",
-  //       body: formData,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error sending video to server:", error);
-  //   }
-  // };
 
   const handleWebcam = () => {
     setWebcam(!webcam);
@@ -161,7 +159,7 @@ export default function WebcamVideo() {
           </>
         )}
         {recordedChunks.length > 0 && (
-          <button className="btn ml-2" onClick={handleDownload}>
+          <button className="btn ml-2" onClick={handleUpload}>
             Download
           </button>
         )}

@@ -1,2 +1,5 @@
 .DS_Store
 client/.env*
+server/node_modules
+client/yarn.lock
+server/.env*

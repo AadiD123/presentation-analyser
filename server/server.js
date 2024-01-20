@@ -1,16 +1,21 @@
 const express = require("express");
 const cors = require("cors");
-const app = express();
-
+const fs = require("fs");
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" }); // Configure as needed
+
+const app = express();
 
 app.use(cors());
 
-app.post("/upload", upload.single("video"), (req, res) => {
-  // 'video' corresponds to the key in FormData
-  console.log(req.file); // Information about the file
-  res.send("Video uploaded successfully");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+// Endpoint to handle video chunks
+app.post("/upload-chunk", upload.single("chunk"), (req, res) => {
+  const chunk = req.file.buffer;
+  // Append the received chunk to the video file
+  fs.appendFileSync("uploads/video.webm", chunk);
+  res.status(200).send("Chunk uploaded successfully!");
 });
 
 const PORT = process.env.PORT || 3000;
