@@ -6,24 +6,25 @@ export default function WebcamVideo() {
   const webcamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const [capturing, setCapturing] = useState(false);
+  const [webcam, setWebcam] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState([]);
 
-  const getFrame = useCallback (async () => {
+  const getFrame = useCallback(async () => {
     return webcamRef.current.getScreenshot();
   }, [webcamRef]);
 
-  const [emotions, setEmotions] = useState([])
-  const [socket, stopEverything] = useSocket({getFrame, setEmotions})
-  const [maxEmotions, setMaxEmotions] = useState([])
+  const [emotions, setEmotions] = useState([]);
+  const [socket, stopEverything] = useSocket({ getFrame, setEmotions });
+  const [maxEmotions, setMaxEmotions] = useState([]);
   useEffect(() => {
-    console.log("change emotions: ", emotions)
-  }, [emotions])
+    console.log("change emotions: ", emotions);
+  }, [emotions]);
 
   useEffect(() => {
     return () => {
       // stopEverything()
-    }
-  }, [])
+    };
+  }, []);
 
   function extMap(oldMins, newEmotions, compare) {
     if (oldMins.length == 0) return newEmotions;
@@ -33,7 +34,9 @@ export default function WebcamVideo() {
       for (let j = 0; j < newEmotions.length; j++) {
         const oldMin = oldMins[j];
         if (oldMin.name == newEmotion.name) {
-          newMinEmotions.push(compare(newEmotion.score, oldMin.score) ? newEmotion : oldMin);
+          newMinEmotions.push(
+            compare(newEmotion.score, oldMin.score) ? newEmotion : oldMin
+          );
         }
       }
     }
@@ -47,7 +50,7 @@ export default function WebcamVideo() {
 
     // setMinEmotions((m) => extMap(m, emotions, (a, b) => a < b));
     setMaxEmotions((m) => extMap(m, emotions, (a, b) => a > b));
-  },[emotions])
+  }, [emotions]);
 
   const handleDataAvailable = useCallback(
     ({ data }) => {
@@ -115,7 +118,9 @@ export default function WebcamVideo() {
   //   }
   // };
 
-
+  const handleWebcam = () => {
+    setWebcam(!webcam);
+  };
 
   const videoConstraints = {
     facingMode: "user",
@@ -123,14 +128,19 @@ export default function WebcamVideo() {
 
   return (
     <div>
-      <Webcam
-        audio={true}
-        muted={true}
-        mirrored={true}
-        ref={webcamRef}
-        videoConstraints={videoConstraints}
-        style={{ margin: "0px" }}
-      />
+      <button className="btn" onClick={handleWebcam}>
+        X
+      </button>
+      {webcam ? ( // Check if webcam is enabled
+        <Webcam
+          audio={true}
+          muted={true}
+          mirrored={true}
+          ref={webcamRef}
+          videoConstraints={videoConstraints}
+          style={{ margin: "0px" }}
+        />
+      ) : null}
       <div className="mt-12">
         {capturing ? (
           <button className="btn" onClick={handleStopCaptureClick}>
@@ -138,10 +148,16 @@ export default function WebcamVideo() {
           </button>
         ) : (
           <>
-          <button className="btn" onClick={handleStartCaptureClick}>
-            Analyze Presentation
-          </button>
-
+            <button className="btn" onClick={handleStartCaptureClick}>
+              Start
+            </button>
+            <div>
+              {maxEmotions.map((e) => (
+                <div key={e.name}>
+                  <p>{e.name + " " + e.score}</p>
+                </div>
+              ))}
+            </div>
           </>
         )}
         {recordedChunks.length > 0 && (
@@ -150,11 +166,6 @@ export default function WebcamVideo() {
           </button>
         )}
       </div>
-      <div>
-            {maxEmotions.map(e => (<div key={e.name}>
-              <p>{e.name + " " + e.score}</p>
-            </div>))}
-          </div>
     </div>
   );
 }
