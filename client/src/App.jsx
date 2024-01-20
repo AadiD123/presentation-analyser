@@ -6,9 +6,8 @@ import LoginButton from "./components/LoginButton";
 function App() {
   return (
     <div>
-      <Navbar class="place-content-start" />
+      <Navbar />
       <WebcamVideo />
-      <LoginButton />
     </div>
   );
 }
