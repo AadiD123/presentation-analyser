@@ -8,12 +8,9 @@ import Profile from "./components/Profile";
 function App() {
   return (
     <div>
-      <Navbar class="place-content-start" />
+      <Navbar />
       <WebcamVideo />
       <LoginButton />
-      <LogoutButton />
-      <Profile />
-      <WebcamVideo />
     </div>
   );
 }

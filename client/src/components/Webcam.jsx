@@ -29,11 +29,11 @@ export default function WebcamVideo() {
     // setMinEmotions((m) => extMap(m, emotions, (a, b) => a < b));
     setMaxEmotions((m) => extMap(m, emotions, (a, b) => a > b));
   });
-  const [socket, stopEverything, capturePhoto] = useSocket({
-    getFrame,
-    setEmotions,
-    onEmotionUpdate,
-  });
+  // const [socket, stopEverything, capturePhoto] = useSocket({
+  //   getFrame,
+  //   setEmotions,
+  //   onEmotionUpdate,
+  // });
 
   function extMap(oldMins, newEmotions, compare) {
     if (oldMins.length == 0) return newEmotions;
