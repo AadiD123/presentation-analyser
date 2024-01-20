@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import LoginButton from "./LoginButton";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const navigation = [
   { name: "Video", href: "#", current: true },
@@ -13,7 +14,7 @@ function classNames(...classes) {
 }
 
 export default function Navbar() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isAuthenticated, isLoading, logout } = useAuth0();
 
   if (isLoading) {
     return <div>Loading ...</div>;
@@ -66,16 +67,15 @@ export default function Navbar() {
                 </div>
               </div>
               {/* Remove notification and profile button */}
-
-              {/* <Menu as="div" className="relative ml-3">
+              {isAuthenticated && !isLoading ? (<Menu as="div" className="relative ml-3">
                 <div>
                   <Menu.Button className="relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                     <span className="absolute -inset-1.5" />
                     <span className="sr-only">Open user menu</span>
                     <img
                       className="h-8 w-8 rounded-full"
-                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                      alt=""
+                      src={user.picture}
+                      alt={user.name}
                     />
                   </Menu.Button>
                 </div>
@@ -123,6 +123,7 @@ export default function Navbar() {
                             active ? "bg-gray-100" : "",
                             "block px-4 py-2 text-sm text-gray-700"
                           )}
+                          onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
                         >
                           Sign out
                         </a>
@@ -130,7 +131,9 @@ export default function Navbar() {
                     </Menu.Item>
                   </Menu.Items>
                 </Transition>
-              </Menu> */}
+              </Menu>) : 
+              <LoginButton />
+              }
             </div>
           </div>
 
