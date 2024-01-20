@@ -141,11 +141,7 @@ export default function WebcamVideo() {
           <button className="btn" onClick={handleStartCaptureClick}>
             Analyze Presentation
           </button>
-          <div>
-            {maxEmotions.map(e => (<div key={e.name}>
-              <p>{e.name + " " + e.score}</p>
-            </div>))}
-          </div>
+
           </>
         )}
         {/* {recordedChunks.length > 0 && (
@@ -154,6 +150,11 @@ export default function WebcamVideo() {
           </button>
         )} */}
       </div>
+      <div>
+            {maxEmotions.map(e => (<div key={e.name}>
+              <p>{e.name + " " + e.score}</p>
+            </div>))}
+          </div>
     </div>
   );
 }
