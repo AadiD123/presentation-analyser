@@ -197,11 +197,208 @@ const maxEmotions = [
     score: 0.018493130803108215,
   },
 ];
+import axios from "axios";
+
+const maxEmotions = [
+  {
+    name: "Admiration",
+    score: 0.060718487948179245,
+  },
+  {
+    name: "Adoration",
+    score: 0.03393908217549324,
+  },
+  {
+    name: "Aesthetic Appreciation",
+    score: 0.05552653223276138,
+  },
+  {
+    name: "Amusement",
+    score: 0.05414880812168121,
+  },
+  {
+    name: "Anger",
+    score: 0.15331213176250458,
+  },
+  {
+    name: "Anxiety",
+    score: 0.17347106337547302,
+  },
+  {
+    name: "Awe",
+    score: 0.07149098813533783,
+  },
+  {
+    name: "Awkwardness",
+    score: 0.1764126420021057,
+  },
+  {
+    name: "Boredom",
+    score: 0.5634750127792358,
+  },
+  {
+    name: "Calmness",
+    score: 0.5557433366775513,
+  },
+  {
+    name: "Concentration",
+    score: 0.6846870183944702,
+  },
+  {
+    name: "Contemplation",
+    score: 0.25221189856529236,
+  },
+  {
+    name: "Confusion",
+    score: 0.4122934639453888,
+  },
+  {
+    name: "Contempt",
+    score: 0.20414546132087708,
+  },
+  {
+    name: "Contentment",
+    score: 0.0855766236782074,
+  },
+  {
+    name: "Craving",
+    score: 0.048967305570840836,
+  },
+  {
+    name: "Determination",
+    score: 0.20656701922416687,
+  },
+  {
+    name: "Disappointment",
+    score: 0.3314349353313446,
+  },
+  {
+    name: "Disgust",
+    score: 0.09056425094604492,
+  },
+  {
+    name: "Distress",
+    score: 0.18269085884094238,
+  },
+  {
+    name: "Doubt",
+    score: 0.35290002822875977,
+  },
+  {
+    name: "Ecstasy",
+    score: 0.01552280131727457,
+  },
+  {
+    name: "Embarrassment",
+    score: 0.0728725790977478,
+  },
+  {
+    name: "Empathic Pain",
+    score: 0.07914263755083084,
+  },
+  {
+    name: "Entrancement",
+    score: 0.1396426409482956,
+  },
+  {
+    name: "Envy",
+    score: 0.05593650043010712,
+  },
+  {
+    name: "Excitement",
+    score: 0.027454445138573647,
+  },
+  {
+    name: "Fear",
+    score: 0.08767421543598175,
+  },
+  {
+    name: "Guilt",
+    score: 0.08720698952674866,
+  },
+  {
+    name: "Horror",
+    score: 0.035128068178892136,
+  },
+  {
+    name: "Interest",
+    score: 0.2680805027484894,
+  },
+  {
+    name: "Joy",
+    score: 0.030008288100361824,
+  },
+  {
+    name: "Love",
+    score: 0.03561575710773468,
+  },
+  {
+    name: "Nostalgia",
+    score: 0.05582457408308983,
+  },
+  {
+    name: "Pain",
+    score: 0.08877305686473846,
+  },
+  {
+    name: "Pride",
+    score: 0.052432045340538025,
+  },
+  {
+    name: "Realization",
+    score: 0.1403522491455078,
+  },
+  {
+    name: "Relief",
+    score: 0.04244609922170639,
+  },
+  {
+    name: "Romance",
+    score: 0.023199284449219704,
+  },
+  {
+    name: "Sadness",
+    score: 0.2387680858373642,
+  },
+  {
+    name: "Satisfaction",
+    score: 0.05668972060084343,
+  },
+  {
+    name: "Desire",
+    score: 0.03643307834863663,
+  },
+  {
+    name: "Shame",
+    score: 0.06421031802892685,
+  },
+  {
+    name: "Surprise (negative)",
+    score: 0.05390920490026474,
+  },
+  {
+    name: "Surprise (positive)",
+    score: 0.03488391265273094,
+  },
+  {
+    name: "Sympathy",
+    score: 0.05737285688519478,
+  },
+  {
+    name: "Tiredness",
+    score: 0.2940036654472351,
+  },
+  {
+    name: "Triumph",
+    score: 0.018493130803108215,
+  },
+];
 
 export default function WebcamVideo() {
   const webcamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const [capturing, setCapturing] = useState(false);
+  const cap2 = useRef(false);
   const [webcam, setWebcam] = useState(false);
   var chunks = [];
 
@@ -219,36 +416,30 @@ export default function WebcamVideo() {
   const onEmotionUpdate = useCallback((emotions) => {
     console.log("change emotions: ", emotions);
     if (emotions.length == 0) {
+  // const [maxEmotions, setMaxEmotions] = useState([]);
+  const onEmotionUpdate = useCallback((emotions) => {
+    console.log("change emotions: ", emotions);
+    if (emotions.length == 0) {
       return;
     }
+    const n = sortAndFilterEmotions(newEmotions, 3);
+    console.log("NNNN", n);
+    setMaxEmotions(n);
 
     // setMinEmotions((m) => extMap(m, emotions, (a, b) => a < b));
     // setMaxEmotions((m) => extMap(m, emotions, (a, b) => a > b));
   });
-  // const [socket, stopEverything, capturePhoto] = useSocket({
-  //   getFrame,
-  //   setEmotions,
-  //   onEmotionUpdate,
-  // });
-
-  function extMap(oldMins, newEmotions, compare) {
-    if (oldMins.length == 0) return newEmotions;
-    const newMinEmotions = [];
-    for (let i = 0; i < newEmotions.length; i++) {
-      const newEmotion = newEmotions[i];
-      for (let j = 0; j < newEmotions.length; j++) {
-        const oldMin = oldMins[j];
-        if (oldMin.name == newEmotion.name) {
-          newMinEmotions.push(
-            compare(newEmotion.score, oldMin.score) ? newEmotion : oldMin
-          );
-        }
-      }
-    }
-    return newMinEmotions;
-  }
+  const [socket, stopEverything, capturePhoto] = useSocket({
+    getFrame,
+    setEmotions,
+    onEmotionUpdate,
+    capturing: cap2,
+  });
 
   const handleStartCaptureClick = useCallback(() => {
+    setCapturing(true);
+    cap2.current = true;
+
     const stream = webcamRef.current.stream;
     mediaRecorderRef.current = new MediaRecorder(stream);
 
@@ -260,6 +451,7 @@ export default function WebcamVideo() {
 
     mediaRecorderRef.current.onstop = () => {
       const blob = new Blob(chunks, { type: "video/webm" });
+      const blob = new Blob(chunks, { type: "video/webm" });
       sendVideoToServer(blob);
     };
 
@@ -269,6 +461,7 @@ export default function WebcamVideo() {
   const handleStopCaptureClick = useCallback(() => {
     mediaRecorderRef.current.stop();
     setCapturing(false);
+    cap2.current = false;
     if (chunks.length) {
       sendVideoToServer(chunks);
     }
@@ -300,8 +493,15 @@ export default function WebcamVideo() {
         "http://localhost:3000/upload-video",
         formData
       );
+      formData.append("video", blob, "recorded-video.webm");
+
+      const { data } = await axios.post(
+        "http://localhost:3000/upload-video",
+        formData
+      );
       console.log(data);
     } catch (error) {
+      console.error("Error uploading video:", error);
       console.error("Error uploading video:", error);
     }
   };
@@ -319,6 +519,7 @@ export default function WebcamVideo() {
 
     mediaRecorderRef.current.onstop = () => {
       const blob = new Blob(chunks, { type: "video/webm" });
+      const blob = new Blob(chunks, { type: "video/webm" });
       sendVideoToServer(blob);
     };
 
@@ -328,13 +529,22 @@ export default function WebcamVideo() {
   const stopRecording = () => {
     console.log("Stopping recording");
     setCapturing(false);
+    setCapturing(false);
     mediaRecorderRef.current.stop();
   };
 
   // const handleWebcam = () => {
   //   setWebcam(!webcam);
   // };
+  // const handleWebcam = () => {
+  //   setWebcam(!webcam);
+  // };
 
+  // useEffect(() => {
+  //   if (webcam) {
+  //     capturePhoto();
+  //   }
+  // }, [webcam]);
   // useEffect(() => {
   //   if (webcam) {
   //     capturePhoto();
@@ -365,12 +575,19 @@ export default function WebcamVideo() {
         <button onClick={startRecording}>Start Recording</button>
         <button onClick={stopRecording}>Stop Recording</button>
         {/* <div className="mt-12">
+        <button onClick={stopRecording}>Stop Recording</button>
+        {/* <div className="mt-12">
           {capturing ? (
+            <button className="btn bg-red-500" onClick={startRecording}>
             <button className="btn bg-red-500" onClick={startRecording}>
               Stop
             </button>
           ) : (
             <>
+              <button
+                className="btn bg-red-900"
+                onClick={handleStartCaptureClick}
+              >
               <button
                 className="btn bg-red-900"
                 onClick={handleStartCaptureClick}
@@ -385,24 +602,21 @@ export default function WebcamVideo() {
             </button>
           ) : null}
         </div> */}
+        </div> */}
       </div>
 
       <div className="m-12 flex flex-col space-between">
         <h3 className="font-bold">Top Emotions List</h3>
         <div className="max-h-100 text-left">
-          {maxEmotions
-            .slice() // Create a shallow copy to avoid mutating the original array
-            .sort((a, b) => b.score - a.score) // Sort in descending order by score
-            .slice(0, 3) // Limit to the top 3 elements
-            .map((e) => (
-              <div
-                className="bg-red-900 px-4 py-2 min-w-24 my-4 rounded-lg flex justify-between items-center"
-                key={e.name}
-              >
-                <p>{e.name}</p>
-                <p>{e.score.toFixed(3)}</p>
-              </div>
-            ))}
+          {maxEmotions.map((e) => (
+            <div
+              className="bg-red-900 px-4 py-2 min-w-24 my-4 rounded-lg flex justify-between items-center"
+              key={e.name}
+            >
+              <p>{e.name}</p>
+              <p>{e.score.toFixed(3)}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
