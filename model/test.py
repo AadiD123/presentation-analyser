@@ -6,23 +6,25 @@ import re
 import librosa
 import soundfile as sf
 
-ROOT_PATH = "/Users/arnav/git/presentation-analyser/model"
+# TODO change to work on deployed server
+ROOT_PATH = "/Users/arnav/git/presentation-analyser/model" 
 
 mysp = __import__("my-voice-analysis")
-path = rf"{ROOT_PATH}/audio_files" # Path to where your audio file are
-temp_path = rf"{ROOT_PATH}/temp" # IMPORTANT! drop the "myspsolution.praat" in this folder and this folder path and name does not have spaces.
-temp_name = "temp.wav" # file name of the temp file for conversion.
+AUDIO_FILE_DIR = rf"{ROOT_PATH}/audio_files" # Path to where your audio file are
+TEMP_PATH = rf"{ROOT_PATH}/temp" # IMPORTANT! drop the "myspsolution.praat" in this folder and this folder path and name does not have spaces.
+TEMP_FILE_NAME = "temp.wav" # file name of the temp file for conversion.
 
 
+# main function that returns speech analysis result, pass in audio file name
 def analyze_audio_file(audio_file):
-    convert_audio_file(audio_file, path)
+    convert_audio_file(audio_file, AUDIO_FILE_DIR)
     with io.StringIO() as buf, contextlib.redirect_stdout(buf):
-        mysp.mysptotal(temp_name[:-4], temp_path)
+        mysp.mysptotal(TEMP_FILE_NAME[:-4], TEMP_PATH)
         captured_output = buf.getvalue()
 
         numbers = [float(num) for num in re.findall(r"\d+\.\d+|\d+", captured_output) if num != "0"]
         # remove temp file
-        os.remove(fr"{temp_path}/{temp_name}")
+        os.remove(fr"{TEMP_PATH}/{TEMP_FILE_NAME}")
 
         if len(numbers) != 16:
             return numbers
@@ -44,6 +46,7 @@ def analyze_audio_file(audio_file):
         }
 
 
+# helper function to make audio work
 def convert_audio_file(input_file, path):
     y, s = librosa.load(f"{path}/{input_file}", sr=44100)
 
@@ -53,8 +56,7 @@ def convert_audio_file(input_file, path):
     y = y * 32767 / max(abs(y))
     y = y.astype('int16')
 
-    sf.write(f"{temp_path}/{temp_name}", y, s, "PCM_24")
+    sf.write(f"{TEMP_PATH}/{TEMP_FILE_NAME}", y, s, "PCM_24")
 
-path = rf"{ROOT_PATH}/audio_files" # Path to where your audio file(s) is(are)
-
-print(analyze_audio_file("record.wav")) # Name of the audio file in the folder of the path variable.
+if __name__ == "__main__":
+    print(analyze_audio_file("record.wav")) # Name of the audio file in the folder of the path variable.
