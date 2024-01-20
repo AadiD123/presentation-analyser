@@ -123,6 +123,7 @@ export default function WebcamVideo() {
 
   const stopRecording = () => {
     console.log("Stopping recording");
+    chunks = [];
     mediaRecorderRef.current.stop();
   };
 

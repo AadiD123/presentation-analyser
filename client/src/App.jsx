@@ -4,7 +4,7 @@ import WebcamVideo from "./components/Webcam";
 
 function App() {
   return (
-    <div>
+    <div className="dotted-background">
       <Navbar />
       <WebcamVideo />
     </div>
