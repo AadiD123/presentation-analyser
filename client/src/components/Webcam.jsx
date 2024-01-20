@@ -9,22 +9,31 @@ export default function WebcamVideo() {
   const [webcam, setWebcam] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState([]);
 
-  const getFrame = useCallback(async () => {
-    return webcamRef.current.getScreenshot();
+  const getFrame = useCallback(() => {
+    if (webcamRef !== null && webcamRef.current !== null) {
+      return webcamRef.current.getScreenshot();
+    } else {
+      return null;
+    }
   }, [webcamRef]);
 
   const [emotions, setEmotions] = useState([]);
-  const [socket, stopEverything] = useSocket({ getFrame, setEmotions });
-  const [maxEmotions, setMaxEmotions] = useState([]);
-  useEffect(() => {
-    console.log("change emotions: ", emotions);
-  }, [emotions]);
 
-  useEffect(() => {
-    return () => {
-      // stopEverything()
-    };
-  }, []);
+  const [maxEmotions, setMaxEmotions] = useState([]);
+  const onEmotionUpdate = useCallback((emotions) => {
+    console.log("change emotions: ", emotions);
+    if (emotions.length == 0) {
+      return;
+    }
+
+    // setMinEmotions((m) => extMap(m, emotions, (a, b) => a < b));
+    setMaxEmotions((m) => extMap(m, emotions, (a, b) => a > b));
+  });
+  const [socket, stopEverything, capturePhoto] = useSocket({
+    getFrame,
+    setEmotions,
+    onEmotionUpdate,
+  });
 
   function extMap(oldMins, newEmotions, compare) {
     if (oldMins.length == 0) return newEmotions;
@@ -42,15 +51,6 @@ export default function WebcamVideo() {
     }
     return newMinEmotions;
   }
-
-  useEffect(() => {
-    if (emotions.length == 0) {
-      return;
-    }
-
-    // setMinEmotions((m) => extMap(m, emotions, (a, b) => a < b));
-    setMaxEmotions((m) => extMap(m, emotions, (a, b) => a > b));
-  }, [emotions]);
 
   const handleDataAvailable = useCallback(
     ({ data }) => {
@@ -122,49 +122,68 @@ export default function WebcamVideo() {
     setWebcam(!webcam);
   };
 
+  useEffect(() => {
+    if (webcam) {
+      capturePhoto();
+    }
+  }, [webcam]);
+
   const videoConstraints = {
     facingMode: "user",
   };
 
   return (
-    <div>
-      <button className="btn" onClick={handleWebcam}>
+    <div className="flex justify-center">
+      {/* <button className="btn" onClick={handleWebcam}>
         X
       </button>
       {webcam ? ( // Check if webcam is enabled
+        
+      ) : null} */}
+      <div>
         <Webcam
           audio={true}
           muted={true}
           mirrored={true}
           ref={webcamRef}
           videoConstraints={videoConstraints}
-          style={{ margin: "0px" }}
+          className="max-w-lg self-center mt-10 rounded-md"
         />
-      ) : null}
-      <div className="mt-12">
-        {capturing ? (
-          <button className="btn" onClick={handleStopCaptureClick}>
-            Stop
-          </button>
-        ) : (
-          <>
-            <button className="btn" onClick={handleStartCaptureClick}>
-              Start
+
+        <div className="mt-12">
+          {capturing ? (
+            <button className="btn bg-red-500" onClick={handleStopCaptureClick}>
+              Stop
             </button>
-            <div>
-              {maxEmotions.map((e) => (
-                <div key={e.name}>
-                  <p>{e.name + " " + e.score}</p>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-        {recordedChunks.length > 0 && (
-          <button className="btn ml-2" onClick={handleDownload}>
-            Download
-          </button>
-        )}
+          ) : (
+            <>
+              <button className="btn" onClick={handleStartCaptureClick}>
+                Start
+              </button>
+            </>
+          )}
+          {recordedChunks.length > 0 ? (
+            <button className="btn ml-2" onClick={handleDownload}>
+              Download
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="m-12 flex flex-col justify-center">
+        <div>
+          {maxEmotions
+            .slice() // Create a shallow copy to avoid mutating the original array
+            .sort((a, b) => b.score - a.score) // Sort in descending order by score
+            .slice(0, 3) // Limit to the top 3 elements
+            .map((e) => (
+              <div key={e.name}>
+                <p>
+                  {e.name} {e.score.toFixed(3)}
+                </p>
+              </div>
+            ))}
+        </div>
       </div>
     </div>
   );
