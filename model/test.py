@@ -2,7 +2,6 @@ import contextlib
 import io
 import os
 import re
-
 import librosa
 import soundfile as sf
 
@@ -24,7 +23,8 @@ def analyze_audio_file(audio_file):
 
         numbers = [float(num) for num in re.findall(r"\d+\.\d+|\d+", captured_output) if num != "0"]
         # remove temp file
-        os.remove(fr"{TEMP_PATH}/{TEMP_FILE_NAME}")
+        os.remove(rf"{TEMP_PATH}/{TEMP_FILE_NAME}")
+        os.remove(rf"{TEMP_PATH}/temp.TextGrid")
 
         if len(numbers) != 16:
             return numbers
