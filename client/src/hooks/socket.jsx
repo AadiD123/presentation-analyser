@@ -24,7 +24,7 @@ export default function useSocket({getFrame, setEmotions}) {
           console.log("Socket already exists, will not create");
         } else {
           const endpointUrl = `wss://api.hume.ai/v0/stream/models`;
-          const socketUrl = `${endpointUrl}?apikey=${`A8GpCQIbPM64uRNFubcDOwIJq7CPGUOZFG9tx3wcirKOtKIh`}`;
+          const socketUrl = `${endpointUrl}?apikey=${import.meta.env.VITE_HUME_API_KEY}`;
           console.log(`Connecting to websocket... (using ${endpointUrl})`);
         //   setStatus(`Connecting to server...`);
     
@@ -63,10 +63,11 @@ export default function useSocket({getFrame, setEmotions}) {
           stopEverything();
           return;
         }
-    
+        let test = true
         if (predictions.length === 0) {
         //   setStatus(warning.replace(".", ""));
           setEmotions([]);
+            test = false
         }
     
         const newTrackedFaces = [];
@@ -81,8 +82,12 @@ export default function useSocket({getFrame, setEmotions}) {
           }
         });
         // setTrackedFaces(newTrackedFaces);
-    
-        await capturePhoto();
+        if (!test || true) {
+            setTimeout(() => {
+                console.log("capture photo")
+                capturePhoto()
+            }, 2000)
+        }
       }
     
       async function socketOnClose(event) {
