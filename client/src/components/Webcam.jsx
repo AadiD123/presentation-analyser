@@ -1,11 +1,53 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
+import useSocket from "../hooks/socket";
 
 export default function WebcamVideo() {
   const webcamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const [capturing, setCapturing] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState([]);
+
+  const getFrame = useCallback (async () => {
+    return webcamRef.current.getScreenshot();
+  }, [webcamRef]);
+
+  const [emotions, setEmotions] = useState([])
+  const [socket, stopEverything] = useSocket({getFrame, setEmotions})
+  const [maxEmotions, setMaxEmotions] = useState([])
+  useEffect(() => {
+    console.log("change emotions: ", emotions)
+  }, [emotions])
+
+  useEffect(() => {
+    return () => {
+      // stopEverything()
+    }
+  }, [])
+
+  function extMap(oldMins, newEmotions, compare) {
+    if (oldMins.length == 0) return newEmotions;
+    const newMinEmotions = [];
+    for (let i = 0; i < newEmotions.length; i++) {
+      const newEmotion = newEmotions[i];
+      for (let j = 0; j < newEmotions.length; j++) {
+        const oldMin = oldMins[j];
+        if (oldMin.name == newEmotion.name) {
+          newMinEmotions.push(compare(newEmotion.score, oldMin.score) ? newEmotion : oldMin);
+        }
+      }
+    }
+    return newMinEmotions;
+  }
+
+  useEffect(() => {
+    if (emotions.length == 0) {
+      return;
+    }
+
+    // setMinEmotions((m) => extMap(m, emotions, (a, b) => a < b));
+    setMaxEmotions((m) => extMap(m, emotions, (a, b) => a > b));
+  },[emotions])
 
   const handleDataAvailable = useCallback(
     ({ data }) => {
@@ -74,6 +116,8 @@ export default function WebcamVideo() {
     }
   };
 
+
+
   const videoConstraints = {
     facingMode: "user",
   };
@@ -93,9 +137,16 @@ export default function WebcamVideo() {
             Stop
           </button>
         ) : (
+          <>
           <button className="btn" onClick={handleStartCaptureClick}>
             Analyze Presentation
           </button>
+          <div>
+            {maxEmotions.map(e => (<div key={e.name}>
+              <p>{e.name + " " + e.score}</p>
+            </div>))}
+          </div>
+          </>
         )}
         {/* {recordedChunks.length > 0 && (
           <button className="btn ml-2" onClick={handleDownload}>
