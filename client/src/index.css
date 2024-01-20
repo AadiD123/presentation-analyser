@@ -11,12 +11,20 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #0d0d0d;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.dotted-background {
+  height: 100%;
+  background-size: 14px 14px; /* Adjust this value to make the dots smaller */
+  background-image: radial-gradient(circle, #2c2b2b 1px, transparent 1px),
+    radial-gradient(circle, transparent 1px, #000000 1px);
+  background-position: 0 0, 7px 7px; /* You might also need to adjust background-position */
 }
 
 a {
@@ -40,6 +48,16 @@ h1 {
   line-height: 1.1;
 }
 
+h3 {
+  font-size: 1.6em;
+  line-height: 1.1;
+}
+
+h4 {
+  font-size: 1.4em;
+  line-height: 1.1;
+}
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -47,7 +65,7 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #775151;
   cursor: pointer;
   transition: border-color 0.25s;
 }
