@@ -15,10 +15,6 @@ import {
   ResponsiveContainer,
   Label,
   AreaChart,
-  Scatter,
-  ScatterChart,
-  BarChart,
-  Bar
   // linearGradient,
 } from "recharts";
 
@@ -28,12 +24,10 @@ export default function WebcamVideo() {
   const [capturing, setCapturing] = useState(false);
   const cap2 = useRef(false);
   const [webcam, setWebcam] = useState(false);
-  const [loading, setLoading] = useState(false)
-  const [data, setData] = useState(null)
+
   const [allEmotions, setAllEmotions] = useState([]);
   const [showEmotions, setShowEmotions] = useState(false);
-  const startTime = useRef(null)
-  const stopTime = useRef(null)
+  const startTime = useRef(null);
 
   const [emotionsMap, setEmotionsMap] = useState([
     {
@@ -128,7 +122,6 @@ export default function WebcamVideo() {
       await axios
         .post("http://localhost:3000/upload-video", formData)
         .then((res) => {
-          setData(res.data)
           console.log(res);
         });
     } catch (error) {
@@ -192,8 +185,6 @@ export default function WebcamVideo() {
   };
 
   const stopRecording = () => {
-    stopTime.current = new Date().getSeconds()
-
     console.log("Stopping recording");
     setShowEmotions(false);
     console.log(emotionsMap);
@@ -220,39 +211,6 @@ export default function WebcamVideo() {
     return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
 
-  const articulationData = () => {
-    if(!data) {
-      return []
-    }
-
-    return data.articulationDatapoints.map((v, i) => {return {value: v, index: i}})
-  }
-
-  const barData = () => {
-    console.log("data", data)
-    if (!data) {
-      return []
-    }
-    const numFillers = data.fillerWords.length
-    const numPauses = data.totalNumberOfPauses
-    const numRepeats = data.repeats.length
-    const numStutter = data.stutter.length
-
-    return [{
-      name: "Fillers",
-      data: numFillers
-    },{
-      name: "Pauses",
-      data: numPauses
-    },{
-      name: "Repeats",
-      data: numRepeats
-    },{
-      name: "Stutters",
-      data: numStutter
-    },]
-  }
-
   useEffect(() => {
     if (capturing) {
       capturePhoto();
@@ -272,24 +230,20 @@ export default function WebcamVideo() {
   return (
     <div className="flex flex-col md:flex-row justify-center p-4 md:p-8 space-y-4 md:space-y-0 md:space-x-10">
       <div className="space-y-4">
-        <div className="bg-light shadow-md rounded-md py-4 px-8">
+        <div className="bg-light shadow-md rounded-md py-10 px-8">
           <div className="flex flex-col justify-center items-center">
-            <div className="flex space-x-2 items-center">
-              {allEmotions.length > 0 ? (
-                <h5 className="text-md font-semibold">Top Emotions:</h5>
-              ) : (
-                <div></div>
-              )}
+            <div className="flex space-x-1">
+              <h5 className="font-bold text-center">Top Emotions:</h5>
               {allEmotions
                 .sort((a, b) => b.score - a.score) // Sort in descending order based on score
                 .slice(0, 3) // Keep only the top three emotions
                 .map((e) => (
                   <div
                     key={e.name}
-                    className="bg-mid my-4 px-4 py-2 rounded-md flex justify-between items-center w-auto md:w-40"
+                    className="bg-mid my-4 px-4 py-2 rounded-md flex space-x-4 justify-between items-center w-42"
                   >
-                    <p className="text-xs md:text-xs">{e.name}</p>
-                    <p className="text-xs md:text-xs">{e.score.toFixed(2)}</p>
+                    <p className="text-sm md:text-base">{e.name}</p>
+                    <p className="text-sm md:text-base">{e.score.toFixed(2)}</p>
                   </div>
                 ))}
             </div>
@@ -316,7 +270,7 @@ export default function WebcamVideo() {
             </div>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-8">
             {capturing ? (
               <button
                 className="btn bg-dark text-sm md:text-base"
@@ -425,23 +379,6 @@ export default function WebcamVideo() {
                 fill="url(#colorJoy)"
               />
             </AreaChart>
-            <BarChart width={730} height={250} data={barData()}>
-  <CartesianGrid strokeDasharray="3 3" />
-  <XAxis dataKey="name" />
-  <YAxis />
-  <Tooltip />
-  {/* <Legend /> */}
-  <Bar dataKey="data" fill="#8884d8" />
-</BarChart>
-<LineChart width={730} height={250} data={articulationData()}
-  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-  <CartesianGrid strokeDasharray="3 3" />
-  <XAxis dataKey="index" />
-  <YAxis />
-  <Tooltip />
-  {/* <Legend /> */}
-  <Line type="monotone" dataKey="value" stroke="#82ca9d" />
-</LineChart>
           </div>
           {capturing ? (
             <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md">
