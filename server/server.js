@@ -146,15 +146,6 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
         res.status(500).send("Error creating WAV file");
       })
       .run();
-<<<<<<< HEAD
-    
-    const pythonProcess = spawn('python3', ["./model/test.py", wavFileName, videoFileName]);
-
-        pythonProcess.stdout.on('data', (data) => {
-          console.log(data.toString());
-        });
-=======
->>>>>>> 4f844063579141202f9442f84839d7b380aede77
   } catch (error) {
     console.error("Error uploading video:", error);
     if (!res.headersSent) {
