@@ -141,8 +141,34 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
             reject(err);
           });
         });
+        const insertVideoQuery = `INSERT INTO videos (metadata, filepath) VALUES (?, ?)`;
+    const videoValues = [parsedData, videoFilePath]; // Replace 'some_user_id' with actual user ID
+
+    connection.query(insertVideoQuery, videoValues, (err, videoResult) => {
+      if (err) {
+        console.error('Error inserting video into database:', err);
+        return res.status(500).send('Error inserting video into database');
+      }
+
+      const videoId = videoResult.insertId;
+      const timestamp = new Date();
+
+      // Insert into scores table
+      const insertScoresQuery = `INSERT INTO scores (user_id, score, timestamp, video_id) VALUES (?, ?, ?, ?)`;
+      const scoresValues = [10, parsedData['FinalScore'], timestamp, videoId];
+
+      connection.query(insertScoresQuery, scoresValues, (err, scoresResult) => {
+        if (err) {
+          console.error('Error inserting scores into database:', err);
+          return res.status(500).send('Error inserting scores into database');
+        }
+
+        // Optionally, add the score ID to the parsedData object
+        parsedData.scoreId = scoresResult.insertId;
 
         res.status(200).send(parsedData);
+      });
+    });
       })
       .on("error", (err) => {
         console.error("Error creating WAV file:", err);
