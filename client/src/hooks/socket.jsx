@@ -6,6 +6,7 @@ export default function useSocket({ getFrame, setEmotions, onEmotionUpdate, capt
   const mountRef = useRef(true);
   const numReconnects = useRef(0);
   const maxReconnects = 3;
+  const RELOAD_SPEED = 2000
 
   useEffect(() => {
     console.log("Mounting component");
@@ -93,7 +94,7 @@ export default function useSocket({ getFrame, setEmotions, onEmotionUpdate, capt
       console.log('rerequest capture', capturing.current)
       setTimeout(() => {
         capturePhoto();
-      }, 2000);
+      }, RELOAD_SPEED);
     }
   })
 

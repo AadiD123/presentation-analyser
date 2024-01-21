@@ -11,7 +11,11 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  Area,
   ResponsiveContainer,
+  Label,
+  AreaChart,
+  // linearGradient,
 } from "recharts";
 
 export default function WebcamVideo() {
@@ -23,13 +27,15 @@ export default function WebcamVideo() {
 
   const [allEmotions, setAllEmotions] = useState([]);
   const [showEmotions, setShowEmotions] = useState(false);
+  const startTime = useRef(null)
 
-  const emotionsMap = useRef({
-    Calmness: [],
-    Interest: [],
-    Confusion: [],
-    Awkwardness: [],
-  });
+  const [emotionsMap, setEmotionsMap] = useState([{
+    Calmness: 0,
+    Interest: 0,
+    Confusion: 0,
+    Awkwardness: 0,
+    time: 0
+  }]);
 
   var chunks = [];
 
@@ -118,15 +124,27 @@ export default function WebcamVideo() {
   };
 
   useEffect(() => {
-    allEmotions.forEach((e) => {
-      if (e.name in emotionsMap.current) {
+    if(allEmotions.length === 0 || new Date().getSeconds() - startTime.current === 0) {
+      return
+    }
+    let newData = {
+      Calmness: 0,
+      Interest: 0,
+      Confusion: 0,
+      Awkwardness: 0,
+      time: new Date().getSeconds() - startTime.current
+    }
+    for (let e of allEmotions) {
+      if (['Calmness', 'Interest', 'Confusion', 'Awkwardness'].includes(e.name)) {
         console.log("pushing", e.name, e.score);
-        emotionsMap.current[e.name].push(e.score);
+        newData[e.name] = e.score;
       }
-    });
+    }
+    setEmotionsMap([...emotionsMap, newData])
   }, [allEmotions]);
 
   const startRecording = () => {
+    startTime.current = new Date().getSeconds()
     console.log("Starting recording");
     setCapturing(true);
     setShowEmotions(true);
@@ -185,6 +203,7 @@ export default function WebcamVideo() {
           videoConstraints={videoConstraints}
           className="w-full md:max-w-lg self-center rounded-md"
         />
+        
         <div className="mt-8">
           {capturing ? (
             <button
@@ -210,6 +229,38 @@ export default function WebcamVideo() {
             </button>
           )}
         </div>
+        <AreaChart width={730} height={250} data={emotionsMap}
+  margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+  <defs>
+    <linearGradient id="colorCalmness" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
+      <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
+    </linearGradient>
+    <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="5%" stopColor="#83a6ed" stopOpacity={0.8}/>
+      <stop offset="95%" stopColor="#83a6ed" stopOpacity={0}/>
+    </linearGradient>
+    <linearGradient id="colorConfusion" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="5%" stopColor="#a4de6c" stopOpacity={0.8}/>
+      <stop offset="95%" stopColor="#a4de6c" stopOpacity={0}/>
+    </linearGradient>
+    <linearGradient id="colorAwkwardness" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
+      <stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
+    </linearGradient>
+  </defs>
+  <XAxis dataKey="time" tick={false} label={{ value: "Time", position: "insideBottom", dy: 10}}/>
+  <YAxis  label={{ value: "Presence", position: "insideLeft", angle: -90,   dy: 30, dx: -10}} />
+  <CartesianGrid strokeDasharray="3 3" />
+  <Tooltip />
+  <Legend verticalAlign="top" height={36}/>
+
+  <Area  type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Calmness" stroke="#8884d8" fillOpacity={1} fill="url(#colorCalmness)" />
+  <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Interest" stroke="#83a6ed" fillOpacity={1} fill="url(#colorInterest)" />
+  <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Confusion" stroke="#a4de6c" fillOpacity={1} fill="url(#colorConfusion)" />
+  <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Awkwardness" stroke="#82ca9d" fillOpacity={1} fill="url(#colorAwkwardness)" />
+
+</AreaChart>
       </div>
       {showEmotions ? (
         <div
@@ -219,7 +270,7 @@ export default function WebcamVideo() {
         >
           <h4 className="font-bold text-base md:text-lg">Top Emotions List</h4>
           <div>
-            {allEmotions.map((e) => (
+            {allEmotions.slice(0, 3).map((e) => (
               <div
                 key={e.name}
                 className="bg-mid my-4 px-4 py-2 rounded-md flex justify-between"
@@ -234,7 +285,8 @@ export default function WebcamVideo() {
         <div className="hidden"></div>
       )}
       <div>
-        <ResponsiveContainer width="100%" height="100%">
+
+        {/* <ResponsiveContainer width="100%" height="100%">
           <LineChart
             width={500}
             height={300}
@@ -259,8 +311,9 @@ export default function WebcamVideo() {
             />
             <Line type="monotone" dataKey="scores" stroke="#82ca9d" />
           </LineChart>
-        </ResponsiveContainer>
+        </ResponsiveContainer> */}
       </div>
+      
     </div>
   );
 }
