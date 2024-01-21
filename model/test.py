@@ -111,17 +111,7 @@ def time_stamped_data(audio, model_directory):
     print(repeated_words)
     print(like_data)
     
-      
-
-
-
-
-
-
-        
-
 
 if __name__ == "__main__":
     analyze_audio_file("jag5.wav")
-    time_stamped_data("jag5.wav", "/Users/jag/Downloads/presentation-analyser-main/whisper-timestamped")
-
+    time_stamped_data(f"{AUDIO_FILE_DIR}/bagel.wav", "/Users/jag/Downloads/presentation-analyser-main/whisper-timestamped")
