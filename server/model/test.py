@@ -27,6 +27,8 @@ def convert_audio_file(segment, sample_rate):
     sf.write(f"{TEMP_PATH}/{TEMP_FILE_NAME}", y, sample_rate, "PCM_24")
 
 def analyze_segments(y, s, total_duration, segment_length_sec, analysis_type):
+    ariculation_points = []
+    pause_points = []
     for start_sec in range(int(total_duration - segment_length_sec + 1)):
         end_sec = start_sec + segment_length_sec
         segment = y[start_sec * s:end_sec * s]
@@ -40,13 +42,20 @@ def analyze_segments(y, s, total_duration, segment_length_sec, analysis_type):
 
         if analysis_type == "articulation_rate":
             metric = numbers[3] if len(numbers) >= 4 else None
-            print(f"[{start_sec},{end_sec}]: Articulation Rate: {metric}")
+            if metric <= 7.0 and metric >= 1.0:
+                ariculation_points.append(metric)
         elif analysis_type == "pauses":
             metric = numbers[1] if len(numbers) >= 2 else None
-            print(f"[{start_sec},{end_sec}]: Number of Pauses: {metric}")
+            if metric <= 7.0 and metric >= 1.0:
+                pause_points.append(metric)
 
         os.remove(rf"{TEMP_PATH}/{TEMP_FILE_NAME}")
         os.remove(rf"{TEMP_PATH}/temp.TextGrid")
+    if analysis_type == "articulation_rate":
+        print(ariculation_points)
+    if analysis_type == "pauses":
+        print(pause_points)
+    return ariculation_points
 
 def analyze_overall_balance_and_pauses(y, s):
     convert_audio_file(y, s)
@@ -68,21 +77,21 @@ def analyze_audio_file(audio_file):
     total_duration = len(y) / s
 
     # Analyzing for articulation rate in segments of 7 seconds
-    analyze_segments(y, s, total_duration, 7, "articulation_rate")
+    art = analyze_segments(y, s, total_duration, 7, "articulation_rate")
 
     # Analyzing for pauses in segments of 3 seconds
-    analyze_segments(y, s, total_duration, 7, "pauses")
+    pau = analyze_segments(y, s, total_duration, 7, "pauses")
 
     # Analyzing for overall balance and total pauses
     analyze_overall_balance_and_pauses(y, s)
 
 def time_stamped_data(audio, model_directory):
-    print("before whisper")
+
     # Specify the path to the model directory
     model = whisper.load_model("tiny", device="cpu", download_root=model_directory)
-    print("after whisper")
 
-    result = whisper.transcribe(model, audio, language="en")
+
+    result = whisper.transcribe(model, audio, verbose = True, language="en", initial_prompt = "please include all utterances including the ums and the ahs and repetitions and if a word is stuttered like stuttering is very important to capture like wa-waterbottle when i repeat the wa sound twice like st-story. When there is a prolonged pause can you put the word *pause* like this so we are aware.")
 
     def simplify_transcription(data):
         simplified = []
@@ -99,17 +108,21 @@ def time_stamped_data(audio, model_directory):
     
     filtered_data = []
     repeated_words = []
+    stutter_data = []
     like_data = []
     for i in range(len(simplified_data)):
-        if "..." in simplified_data[i][0]:
+        if "..." in simplified_data[i][0].lower() or "um" == simplified_data[i][0].lower() or "uh" == simplified_data[i][0].lower() or "uh," == simplified_data[i][0].lower() or "um," == simplified_data[i][0].lower() or "ah" == simplified_data[i][0].lower() or "yeah" in simplified_data[i][0].lower():
             filtered_data.append(simplified_data[i])
         if i > 0 and simplified_data[i][0] == simplified_data[i - 1][0]:
             repeated_words.append(simplified_data[i])
-        if simplified_data[i][0] == "like" or simplified_data[i][0] == "like...":
+        if "-" in simplified_data[i][0]:
+            stutter_data.append(simplified_data[i])
+        if simplified_data[i][0] == "like" or simplified_data[i][0] == "like..." or simplified_data[i][0] == "like,":
             like_data.append(simplified_data[i])
     
     print(filtered_data)
     print(repeated_words)
+    print(stutter_data)
     print(like_data)
     
 if __name__ == "__main__":
