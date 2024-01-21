@@ -182,5 +182,3 @@ if __name__ == "__main__":
     eye_tracking(f"{UPLOAD_PATH}/{sys.argv[2]}")
     sys.stdout.flush()
 
-# f"{UPLOAD_PATH}/{sys.argv[2]}"
-# "uploads/video_1705822816973.webm"
