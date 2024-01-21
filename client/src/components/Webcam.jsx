@@ -27,15 +27,17 @@ export default function WebcamVideo() {
 
   const [allEmotions, setAllEmotions] = useState([]);
   const [showEmotions, setShowEmotions] = useState(false);
-  const startTime = useRef(null)
+  const startTime = useRef(null);
 
-  const [emotionsMap, setEmotionsMap] = useState([{
-    Calmness: 0,
-    Interest: 0,
-    Boredom: 0,
-    Joy: 0,
-    time: 0
-  }]);
+  const [emotionsMap, setEmotionsMap] = useState([
+    {
+      Calmness: 0,
+      Interest: 0,
+      Boredom: 0,
+      Joy: 0,
+      time: 0,
+    },
+  ]);
 
   var chunks = [];
 
@@ -128,34 +130,39 @@ export default function WebcamVideo() {
   };
 
   useEffect(() => {
-    if(allEmotions.length === 0 || new Date().getSeconds() - startTime.current === 0) {
-      return
+    if (
+      allEmotions.length === 0 ||
+      new Date().getSeconds() - startTime.current === 0
+    ) {
+      return;
     }
     let newData = {
       Calmness: 0,
       Interest: 0,
       Boredom: 0,
       Joy: 0,
-      time: new Date().getSeconds() - startTime.current
-    }
+      time: new Date().getSeconds() - startTime.current,
+    };
     for (let e of allEmotions) {
-      if (['Calmness', 'Interest', 'Boredom', 'Joy'].includes(e.name)) {
+      if (["Calmness", "Interest", "Boredom", "Joy"].includes(e.name)) {
         console.log("pushing", e.name, e.score);
         newData[e.name] = e.score;
       }
     }
-    setEmotionsMap([...emotionsMap, newData])
+    setEmotionsMap([...emotionsMap, newData]);
   }, [allEmotions]);
 
   const startRecording = () => {
-    startTime.current = new Date().getSeconds()
-    setEmotionsMap([{
-      Calmness: 0,
-      Interest: 0,
-      Boredom: 0,
-      Joy: 0,
-      time: 0
-    }])
+    startTime.current = new Date().getSeconds();
+    setEmotionsMap([
+      {
+        Calmness: 0,
+        Interest: 0,
+        Boredom: 0,
+        Joy: 0,
+        time: 0,
+      },
+    ]);
     console.log("Starting recording");
     setCapturing(true);
     setShowEmotions(true);
@@ -221,117 +228,165 @@ export default function WebcamVideo() {
   }, [capturing]);
 
   return (
-    <div className="flex flex-col md:flex-row justify-center p-4 md:p-12 space-y-4 md:space-y-0 md:space-x-10">
-      <div className="bg-light py-6 px-6 md:py-10 md:px-24 shadow-md rounded-md">
-        <div style={{ position: "relative" }}>
-          <Webcam
-            audio={true}
-            muted={true}
-            mirrored={true}
-            ref={webcamRef}
-            videoConstraints={videoConstraints}
-            className="w-full  self-center rounded-md"
-          />
-          {capturing ? (
-            <div
-              className="bg-mid px-6 py-2 rounded-md md:text-base"
-              style={{ position: "absolute", bottom: "5px", left: "10px" }}
-            >
-              Timer: {formatTime(timer)}
-            </div>
-          ) : (
-            <div className="hidden"></div>
-          )}
-        </div>
-
-        <div className="mt-8">
-          {capturing ? (
-            <button
-              className="btn bg-dark text-sm md:text-base"
-              onClick={stopRecording}
-            >
-              Stop
-            </button>
-          ) : (
-            <button
-              className="btn bg-mid text-sm md:text-base"
-              onClick={startRecording}
-            >
-              Practice Presenting
-            </button>
-          )}
-          {chunks.length > 0 && (
-            <button
-              className="btn ml-2 text-sm md:text-base"
-              onClick={handleDownload}
-            >
-              Download
-            </button>
-          )}
-        </div>
-        <AreaChart width={730} height={300} data={emotionsMap}
-  margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
-  <defs>
-    <linearGradient id="colorCalmness" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-      <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-    </linearGradient>
-    <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="5%" stopColor="#83a6ed" stopOpacity={0.8}/>
-      <stop offset="95%" stopColor="#83a6ed" stopOpacity={0}/>
-    </linearGradient>
-    <linearGradient id="colorBoredom" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="5%" stopColor="#a4de6c" stopOpacity={0.8}/>
-      <stop offset="95%" stopColor="#a4de6c" stopOpacity={0}/>
-    </linearGradient>
-    <linearGradient id="colorJoy" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
-      <stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
-    </linearGradient>
-  </defs>
-  <XAxis dataKey="time" tick={false} label={{ value: "Time", position: "insideBottom", dy: 10}}/>
-  <YAxis  label={{ value: "Presence", position: "insideLeft", angle: -90,   dy: 30, dx: -10}} />
-  <CartesianGrid strokeDasharray="3 3" />
-  <Tooltip />
-  <Legend verticalAlign="top" height={36}/>
-
-  <Area  type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Calmness" stroke="#8884d8" fillOpacity={1} fill="url(#colorCalmness)" />
-  <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Interest" stroke="#83a6ed" fillOpacity={1} fill="url(#colorInterest)" />
-  <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Boredom" stroke="#a4de6c" fillOpacity={1} fill="url(#colorBoredom)" />
-  <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Joy" stroke="#82ca9d" fillOpacity={1} fill="url(#colorJoy)" />
-
-</AreaChart>
-      </div>
-      {(showEmotions || true) ? (
-        <div className="flex flex-col space-y-4">
-          <div
-            className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md"
-            style={{ height: "100%" }}
-          >
-            <h4 className="font-bold text-base md:text-lg">
-              Top Emotions List
-            </h4>
-            <div>
+    <div className="flex flex-col md:flex-row justify-center p-4 md:p-8 space-y-4 md:space-y-0 md:space-x-10">
+      <div className="space-y-4">
+        <div className="bg-light shadow-md rounded-md py-10 px-8">
+          <div className="flex flex-col justify-center items-center">
+            <div className="flex space-x-1">
+              <h5 className="font-bold text-center">Top Emotions:</h5>
               {allEmotions
                 .sort((a, b) => b.score - a.score) // Sort in descending order based on score
                 .slice(0, 3) // Keep only the top three emotions
                 .map((e) => (
                   <div
                     key={e.name}
-                    className="bg-mid my-4 px-4 py-2 rounded-md flex space-x-4 justify-between w-52"
+                    className="bg-mid my-4 px-4 py-2 rounded-md flex space-x-4 justify-between items-center w-42"
                   >
                     <p className="text-sm md:text-base">{e.name}</p>
-                    <p className="text-sm md:text-base">
-                      {" "}
-                      {e.score.toFixed(2)}
-                    </p>
+                    <p className="text-sm md:text-base">{e.score.toFixed(2)}</p>
                   </div>
                 ))}
             </div>
+
+            <div style={{ position: "relative" }}>
+              <Webcam
+                audio={true}
+                muted={true}
+                mirrored={true}
+                ref={webcamRef}
+                videoConstraints={videoConstraints}
+                className="rounded-md shadow-md"
+              />
+              {capturing ? (
+                <div
+                  className="bg-mid px-6 py-2 rounded-md md:text-base"
+                  style={{ position: "absolute", bottom: "5px", left: "10px" }}
+                >
+                  Timer: {formatTime(timer)}
+                </div>
+              ) : (
+                <div className="hidden"></div>
+              )}
+            </div>
           </div>
-          <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md">
-            <h2>Analyzing video and audio</h2>
+
+          <div className="mt-8">
+            {capturing ? (
+              <button
+                className="btn bg-dark text-sm md:text-base"
+                onClick={stopRecording}
+              >
+                Stop
+              </button>
+            ) : (
+              <button
+                className="btn bg-mid text-sm md:text-base"
+                onClick={startRecording}
+              >
+                Practice Presenting
+              </button>
+            )}
+            {chunks.length > 0 && (
+              <button
+                className="btn ml-2 text-sm md:text-base"
+                onClick={handleDownload}
+              >
+                Download
+              </button>
+            )}
           </div>
+        </div>
+      </div>
+      {showEmotions || true ? (
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-col text-left bg-light p-6 md:p-10 shadow-md rounded-md min-h-36">
+            <AreaChart
+              width={430}
+              height={300}
+              data={emotionsMap}
+              margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+            >
+              <defs>
+                <linearGradient id="colorCalmness" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#83a6ed" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#83a6ed" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorBoredom" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#a4de6c" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#a4de6c" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorJoy" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="time"
+                tick={false}
+                label={{ value: "Time", position: "insideBottom", dy: 10 }}
+              />
+              <YAxis
+                label={{
+                  value: "Presence",
+                  position: "insideLeft",
+                  angle: -90,
+                  dy: 30,
+                  dx: -10,
+                }}
+              />
+              <CartesianGrid strokeDasharray="3 3" />
+              <Tooltip />
+              <Legend verticalAlign="top" height={36} />
+
+              <Area
+                type="monotone"
+                animationDuration={500}
+                isAnimationActive={false}
+                dataKey="Calmness"
+                stroke="#8884d8"
+                fillOpacity={1}
+                fill="url(#colorCalmness)"
+              />
+              <Area
+                type="monotone"
+                animationDuration={500}
+                isAnimationActive={false}
+                dataKey="Interest"
+                stroke="#83a6ed"
+                fillOpacity={1}
+                fill="url(#colorInterest)"
+              />
+              <Area
+                type="monotone"
+                animationDuration={500}
+                isAnimationActive={false}
+                dataKey="Boredom"
+                stroke="#a4de6c"
+                fillOpacity={1}
+                fill="url(#colorBoredom)"
+              />
+              <Area
+                type="monotone"
+                animationDuration={500}
+                isAnimationActive={false}
+                dataKey="Joy"
+                stroke="#82ca9d"
+                fillOpacity={1}
+                fill="url(#colorJoy)"
+              />
+            </AreaChart>
+          </div>
+          {capturing ? (
+            <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md">
+              <h2>Analyzing video and audio</h2>
+            </div>
+          ) : (
+            <div></div>
+          )}
         </div>
       ) : (
         <div className="hidden"></div>
