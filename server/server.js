@@ -67,8 +67,8 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
         const pythonProcess = spawn("python3", [
           "./model/test.py",
           wavFileName,
-          videoFileName
-        ])
+          videoFileName,
+        ]);
 
         let parsedData = await new Promise((resolve, reject) => {
           let dataChunks = [];
@@ -76,11 +76,10 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
             dataChunks.push(data);
           });
 
-
           pythonProcess.stdout.on("end", () => {
             const dataString = Buffer.concat(dataChunks).toString();
-            console.log("datastring", dataString)
-            console.log("end datastring")
+            console.log("datastring", dataString);
+            console.log("end datastring");
             const lines = dataString.split("\n");
 
             // Initialize parsedData object
@@ -133,13 +132,12 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
               word,
               time,
             }));
-            console.log(lines)
+            console.log(lines);
             parsedData["eyeContactPenalty"] = parseFloat(lines[i + 5]);
             parsedData["eyeContactScore"] = parseFloat(lines[i + 6]);
 
-
             input_data = JSON.parse(valid_json_str);
-            
+
             console.log(parsedData);
             resolve(parsedData);
           });
