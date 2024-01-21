@@ -4,3 +4,7 @@ server/node_modules
 client/yarn.lock
 server/.env*
 server/uploads/
+server/model/audio_files/
+server/model/tiny.pt
+server/model/whisper-timestamped/
+server/model/whisper-timestamped
