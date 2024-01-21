@@ -4,8 +4,18 @@ import os
 import re
 import librosa
 import soundfile as sf
+from os import path
+import openai
+from openai import OpenAI
+import pprint
+import whisper_timestamped as whisper
 
-ROOT_PATH = "/Users/jag/Downloads/presentation-analyser-main/model" 
+
+import sys
+
+
+
+ROOT_PATH = "/Users/armanyamaheshwari/Documents/presentation-analyser/model" 
 
 mysp = __import__("my-voice-analysis")
 AUDIO_FILE_DIR = rf"{ROOT_PATH}/audio_files"
@@ -66,8 +76,51 @@ def analyze_audio_file(audio_file):
 
     # Analyzing for overall balance and total pauses
     analyze_overall_balance_and_pauses(y, s)
+
+def time_stamped_data(audio, model_directory):
+    print("before whisper")
+    # Specify the path to the model directory
+    model = whisper.load_model("tiny", device="cpu", download_root=model_directory)
+    print("after whisper")
+
+    result = whisper.transcribe(model, audio, language="en")
+
+    def simplify_transcription(data):
+        simplified = []
+        full_text = ""
+        for segment in data['segments']:
+            for word in segment['words']:
+                simplified.append([word['text'], [word['start'], word['end']]])
+                full_text += word['text'] + " "
+        return simplified, full_text.strip()
+
+    simplified_data, full_transcription_text = simplify_transcription(result)
     
+    filtered_data = []
+    repeated_words = []
+    like_data = []
+    for i in range(len(simplified_data)):
+        if "..." in simplified_data[i][0]:
+            filtered_data.append(simplified_data[i])
+        if i > 0 and simplified_data[i][0] == simplified_data[i - 1][0]:
+            repeated_words.append(simplified_data[i])
+        if simplified_data[i][0] == "like" or simplified_data[i][0] == "like...":
+            like_data.append(simplified_data[i])
+    
+    print(filtered_data)
+    print(repeated_words)
+    print(like_data)
+    
+      
+
+
+
+
+
+
+        
 
 
 if __name__ == "__main__":
     analyze_audio_file("record.wav")
+    time_stamped_data("record.wav", "./whisper-timestamped")
