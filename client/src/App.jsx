@@ -3,28 +3,33 @@ import "./App.css";
 import Navbar from "./components/Navbar";
 import VideoPlayer from "./components/VideoPlayer";
 import WebcamVideo from "./components/Webcam";
+import History from "./components/History";
 import { useEffect } from "react";
-import axios from "axios"
+import axios from "axios";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
   const videoSrc = "./src/assets/T-Pain.mp4";
-  const {isAuthenticated, user, error, isLoading} = useAuth0()
+  const { isAuthenticated, user, error, isLoading } = useAuth0();
   useEffect(() => {
-    console.log("user", user)
+    console.log("user", user);
     if (user) {
       // send post req
-       axios
-        .post(`http://localhost:3000/login/${user.email}`)
-        .then((res) => {
-          console.log(res);
-        });
+      axios.post(`http://localhost:3000/login/${user.email}`).then((res) => {
+        console.log(res);
+      });
     }
-  }, [user])
+  }, [user]);
   return (
     <>
       <div className="dotted-background">
-        <Navbar />
-        <WebcamVideo />
+        <BrowserRouter>
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<WebcamVideo />} />
+            <Route path="history" element={<History />} />
+          </Routes>
+        </BrowserRouter>
       </div>
       <script src="webgazer.js" type="text/javascript" />
     </>

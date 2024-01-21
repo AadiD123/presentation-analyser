@@ -10,7 +10,6 @@ const VideoControls = ({
   const styles = {
     controlsContainer: {
       display: "flex",
-      flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
       marginTop: "10px",
@@ -32,6 +31,13 @@ const VideoControls = ({
 
   return (
     <div style={styles.controlsContainer}>
+      <button
+        className="bg-mid mr-10"
+        style={styles.playPauseButton}
+        onClick={onPlayPause}
+      >
+        {playing ? "⏸ Pause" : "▶ Play"}
+      </button>
       <input
         type="range"
         min="0"
@@ -40,13 +46,6 @@ const VideoControls = ({
         onChange={(e) => onScrub(e.target.value)}
         style={styles.scrubber}
       />
-      <button
-        className="bg-mid"
-        style={styles.playPauseButton}
-        onClick={onPlayPause}
-      >
-        {playing ? "⏸ Pause" : "▶ Play"}
-      </button>
     </div>
   );
 };
