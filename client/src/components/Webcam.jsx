@@ -117,7 +117,7 @@ export default function WebcamVideo() {
       const formData = new FormData();
       formData.append("video", blob, "recorded-video.webm");
 
-      await axios.post("http://localhost:3000/upload-video", formData);
+      await axios.post("http://localhost:3000/upload-video", formData).then((res) => {console.log(res)});
     } catch (error) {
       console.error("Error uploading video:", error);
     }
