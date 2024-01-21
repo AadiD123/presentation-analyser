@@ -19,11 +19,10 @@ const VideoControls = ({
       cursor: "pointer",
       fontSize: "16px",
       padding: "10px 20px",
-      backgroundColor: "#4CAF50",
-      color: "white",
       border: "none",
       borderRadius: "5px",
       marginBottom: "10px",
+      marginTop: "10px",
     },
     scrubber: {
       width: "100%",
@@ -41,7 +40,11 @@ const VideoControls = ({
         onChange={(e) => onScrub(e.target.value)}
         style={styles.scrubber}
       />
-      <button style={styles.playPauseButton} onClick={onPlayPause}>
+      <button
+        className="bg-mid"
+        style={styles.playPauseButton}
+        onClick={onPlayPause}
+      >
         {playing ? "⏸ Pause" : "▶ Play"}
       </button>
     </div>
