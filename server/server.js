@@ -12,7 +12,8 @@ const app = express();
 const connection = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "crondon123"
+  password: "crondon123",
+  database: "prosody"
 });
 
 connection.connect((err) => {
@@ -140,7 +141,7 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
           });
         });
         const insertVideoQuery = `INSERT INTO videos (metadata, filepath) VALUES (?, ?)`;
-    const videoValues = [parsedData, videoFilePath]; // Replace 'some_user_id' with actual user ID
+    const videoValues = [JSON.stringify(parsedData), videoFilePath]; // Replace 'some_user_id' with actual user ID
 
     connection.query(insertVideoQuery, videoValues, (err, videoResult) => {
       if (err) {
