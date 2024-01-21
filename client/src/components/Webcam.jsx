@@ -15,6 +15,10 @@ import {
   ResponsiveContainer,
   Label,
   AreaChart,
+  Scatter,
+  ScatterChart,
+  BarChart,
+  Bar
   // linearGradient,
 } from "recharts";
 
@@ -24,10 +28,12 @@ export default function WebcamVideo() {
   const [capturing, setCapturing] = useState(false);
   const cap2 = useRef(false);
   const [webcam, setWebcam] = useState(false);
-
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState(null)
   const [allEmotions, setAllEmotions] = useState([]);
   const [showEmotions, setShowEmotions] = useState(false);
   const startTime = useRef(null)
+  const stopTime = useRef(null)
 
   const [emotionsMap, setEmotionsMap] = useState([{
     Calmness: 0,
@@ -120,6 +126,7 @@ export default function WebcamVideo() {
       await axios
         .post("http://localhost:3000/upload-video", formData)
         .then((res) => {
+          setData(res.data)
           console.log(res);
         });
     } catch (error) {
@@ -178,6 +185,8 @@ export default function WebcamVideo() {
   };
 
   const stopRecording = () => {
+    stopTime.current = new Date().getSeconds()
+
     console.log("Stopping recording");
     setShowEmotions(false);
     console.log(emotionsMap);
@@ -203,6 +212,39 @@ export default function WebcamVideo() {
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
+
+  const articulationData = () => {
+    if(!data) {
+      return []
+    }
+
+    return data.articulationDatapoints.map((v, i) => {return {value: v, index: i}})
+  }
+
+  const barData = () => {
+    console.log("data", data)
+    if (!data) {
+      return []
+    }
+    const numFillers = data.fillerWords.length
+    const numPauses = data.totalNumberOfPauses
+    const numRepeats = data.repeats.length
+    const numStutter = data.stutter.length
+
+    return [{
+      name: "Fillers",
+      data: numFillers
+    },{
+      name: "Pauses",
+      data: numPauses
+    },{
+      name: "Repeats",
+      data: numRepeats
+    },{
+      name: "Stutters",
+      data: numStutter
+    },]
+  }
 
   useEffect(() => {
     if (capturing) {
@@ -292,7 +334,7 @@ export default function WebcamVideo() {
   <XAxis dataKey="time" tick={false} label={{ value: "Time", position: "insideBottom", dy: 10}}/>
   <YAxis  label={{ value: "Presence", position: "insideLeft", angle: -90,   dy: 30, dx: -10}} />
   <CartesianGrid strokeDasharray="3 3" />
-  <Tooltip />
+  <Tooltip formatter={(value, name, props) => value.toFixed(2)}/>
   <Legend verticalAlign="top" height={36}/>
 
   <Area  type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Calmness" stroke="#8884d8" fillOpacity={1} fill="url(#colorCalmness)" />
@@ -301,6 +343,25 @@ export default function WebcamVideo() {
   <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Joy" stroke="#82ca9d" fillOpacity={1} fill="url(#colorJoy)" />
 
 </AreaChart>
+<ScatterChart
+  width={730}
+  height={250}
+  margin={{
+    top: 20,
+    right: 20,
+    bottom: 10,
+    left: 10,
+  }}
+>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="x" type="number" name="stature" unit="cm" />
+  <YAxis dataKey="y" type="number" name="weight" unit="kg" />
+  {/* <ZAxis dataKey="z" type="number" range={[64, 144]} name="score" unit="km" /> */}
+  <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+  <Legend />
+  <Scatter name="A school" data={[]} fill="#8884d8" />
+  <Scatter name="B school" data={[]} fill="#82ca9d" />
+</ScatterChart>
       </div>
       {(showEmotions || true) ? (
         <div className="flex flex-col space-y-4">
@@ -329,6 +390,23 @@ export default function WebcamVideo() {
                 ))}
             </div>
           </div>
+          <BarChart width={730} height={250} data={barData()}>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="name" />
+  <YAxis />
+  <Tooltip />
+  {/* <Legend /> */}
+  <Bar dataKey="data" fill="#8884d8" />
+</BarChart>
+<LineChart width={730} height={250} data={articulationData()}
+  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="index" />
+  <YAxis />
+  <Tooltip />
+  {/* <Legend /> */}
+  <Line type="monotone" dataKey="value" stroke="#82ca9d" />
+</LineChart>
           <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md">
             <h2>Analyzing video and audio</h2>
           </div>
