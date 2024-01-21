@@ -37,12 +37,38 @@ const VideoPlayer = ({ src, startTimestamp }) => {
     }
   }, [startTimestamp]);
 
+  const onLoadedMetadata = () => {
+    const duration = videoRef.current.duration;
+    console.log("Loaded metadata:", duration);
+    setDuration(duration);
+  };
+
+  const onTimeUpdate = () => {
+    const currentTime = videoRef.current.currentTime;
+    setCurrentTime(currentTime);
+  };
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (videoElement) {
+      videoElement.currentTime = startTimestamp;
+      videoElement.addEventListener("loadedmetadata", onLoadedMetadata);
+      videoElement.addEventListener("timeupdate", onTimeUpdate);
+
+      // Cleanup listeners on unmount
+      return () => {
+        videoElement.removeEventListener("loadedmetadata", onLoadedMetadata);
+        videoElement.removeEventListener("timeupdate", onTimeUpdate);
+      };
+    }
+  }, [startTimestamp]);
+
   return (
     <div>
       <video
         ref={videoRef}
         src={src}
-        type="video/mp4"
+        type="video/webm"
         controls={false}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
