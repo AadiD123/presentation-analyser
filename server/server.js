@@ -5,29 +5,23 @@ const ffmpeg = require("fluent-ffmpeg");
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
-
-async function convertWebmToMp3(webmBlob) {
-  const ffmpeg = createFFmpeg({ log: false });
-  await ffmpeg.load();
-
-  const inputName = "input.webm";
-  const outputName = "output.mp3";
-
-  ffmpeg.FS(
-    "writeFile",
-    inputName,
-    await fetch(webmBlob).then((res) => res.arrayBuffer())
-  );
-
-  await ffmpeg.run("-i", inputName, outputName);
-
-  const outputData = ffmpeg.FS("readFile", outputName);
-  const outputBlob = new Blob([outputData.buffer], { type: "audio/wav" });
-
-  return outputBlob;
-}
+const mysql = require("mysql2");
 
 const app = express();
+
+const connection = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "crondon123"
+});
+
+connection.connect((err) => {
+  if (err) {
+    console.error('Error connecting to the database: ' + err.message);
+  } else {
+    console.log('Connected to the database');
+  }
+});
 
 app.use(cors());
 app.use(express.json());
@@ -155,6 +149,42 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
       res.status(500).send("Error uploading video");
     }
   }
+});
+
+app.get("/getscores/:user_id", (req, res) => {
+  const user_id = req.params.user_id;
+  connection.query(
+    `SELECT * FROM scores WHERE user_id = ${user_id}`,
+    (err, rows, fields) => {
+      if (err) {
+        console.log("Error in query");
+        res.status(500).send("Error in query");
+      } else {
+        console.log("Successful query");
+        res.status(200).send(rows);
+      }
+    }
+  );
+});
+
+app.get("/getvideo/:video_id", (req, res) => {
+  const video_id = req.params.video_id;
+  connection.query(
+    `SELECT * FROM videos WHERE video_id = ${video_id}`,
+    (err, rows, fields) => {
+      if (err) {
+        console.log("Error in query");
+        res.status(500).send("Error in query");
+      } else {
+        if (rows.length === 0) {
+          res.status(404).send('Video not found');
+        } else {
+          const filepath = rows[0].filepath;
+          res.sendFile(filepath, { root: __dirname });
+        }
+      }
+    }
+  );
 });
 
 const PORT = process.env.PORT || 3000;
