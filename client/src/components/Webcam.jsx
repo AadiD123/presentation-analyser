@@ -272,20 +272,24 @@ export default function WebcamVideo() {
   return (
     <div className="flex flex-col md:flex-row justify-center p-4 md:p-8 space-y-4 md:space-y-0 md:space-x-10">
       <div className="space-y-4">
-        <div className="bg-light shadow-md rounded-md py-10 px-8">
+        <div className="bg-light shadow-md rounded-md py-4 px-8">
           <div className="flex flex-col justify-center items-center">
-            <div className="flex space-x-1">
-              <h5 className="font-bold text-center">Top Emotions:</h5>
+            <div className="flex space-x-2 items-center">
+              {allEmotions.length > 0 ? (
+                <h5 className="text-md font-semibold">Top Emotions:</h5>
+              ) : (
+                <div></div>
+              )}
               {allEmotions
                 .sort((a, b) => b.score - a.score) // Sort in descending order based on score
                 .slice(0, 3) // Keep only the top three emotions
                 .map((e) => (
                   <div
                     key={e.name}
-                    className="bg-mid my-4 px-4 py-2 rounded-md flex space-x-4 justify-between items-center w-42"
+                    className="bg-mid my-4 px-4 py-2 rounded-md flex justify-between items-center w-auto md:w-40"
                   >
-                    <p className="text-sm md:text-base">{e.name}</p>
-                    <p className="text-sm md:text-base">{e.score.toFixed(2)}</p>
+                    <p className="text-xs md:text-xs">{e.name}</p>
+                    <p className="text-xs md:text-xs">{e.score.toFixed(2)}</p>
                   </div>
                 ))}
             </div>
@@ -312,7 +316,7 @@ export default function WebcamVideo() {
             </div>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-4">
             {capturing ? (
               <button
                 className="btn bg-dark text-sm md:text-base"
