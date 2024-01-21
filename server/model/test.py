@@ -126,6 +126,8 @@ def time_stamped_data(audio, model_directory):
     print(like_data)
     
 if __name__ == "__main__":
+    print(ROOT_PATH)
+
     analyze_audio_file(sys.argv[1])
     time_stamped_data(f"{AUDIO_FILE_DIR}/{sys.argv[1]}", f"{ROOT_PATH}/whisper-timestamped")
     sys.stdout.flush()
