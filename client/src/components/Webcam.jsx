@@ -149,6 +149,13 @@ export default function WebcamVideo() {
 
   const startRecording = () => {
     startTime.current = new Date().getSeconds()
+    setEmotionsMap([{
+      Calmness: 0,
+      Interest: 0,
+      Boredom: 0,
+      Joy: 0,
+      time: 0
+    }])
     console.log("Starting recording");
     setCapturing(true);
     setShowEmotions(true);
@@ -223,7 +230,7 @@ export default function WebcamVideo() {
             mirrored={true}
             ref={webcamRef}
             videoConstraints={videoConstraints}
-            className="w-full md:max-w-lg self-center rounded-md"
+            className="w-full  self-center rounded-md"
           />
           {capturing ? (
             <div
@@ -295,7 +302,7 @@ export default function WebcamVideo() {
 
 </AreaChart>
       </div>
-      {showEmotions ? (
+      {(showEmotions || true) ? (
         <div className="flex flex-col space-y-4">
           <div
             className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md"
