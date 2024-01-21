@@ -67,16 +67,18 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
         const pythonProcess = spawn("python3", [
           "./model/test.py",
           wavFileName,
-        ]);
+        ])
+
         let parsedData = await new Promise((resolve, reject) => {
           let dataChunks = [];
           pythonProcess.stdout.on("data", (data) => {
             dataChunks.push(data);
           });
 
+
           pythonProcess.stdout.on("end", () => {
             const dataString = Buffer.concat(dataChunks).toString();
-            console.log("Received data from Python:", dataString);
+            console.log("datastring", dataString)
             const lines = dataString.split("\n");
             
             let parsedData = {
@@ -128,6 +130,9 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
               word,
               time,
             }));
+            valid_json_str = lines[i + 2].replace(/'/g, '"');
+            input_data = JSON.parse(valid_json_str);
+
             console.log(parsedData);
             resolve(parsedData);
           });

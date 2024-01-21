@@ -11,11 +11,15 @@ import pprint
 import whisper_timestamped as whisper
 from dotenv import load_dotenv
 import sys
+import time
+import cv2
+from gaze_tracking import GazeTracking
 
 
 
 load_dotenv()
 ROOT_PATH = os.getenv('ROOT_PATH')
+UPLOAD_PATH = os.getenv('UPLOAD_PATH')
 mysp = __import__("my-voice-analysis")
 AUDIO_FILE_DIR = rf"{ROOT_PATH}/audio_files"
 TEMP_PATH = rf"{ROOT_PATH}/temp"
@@ -125,9 +129,56 @@ def time_stamped_data(audio, model_directory):
     print(stutter_data)
     print(like_data)
     
-if __name__ == "__main__":
-    print(ROOT_PATH)
+def eye_tracking(video_path):
+    gaze = GazeTracking()
+    video = cv2.VideoCapture(video_path)
 
+    frame_counter = 0
+    frame_skip = 16 # Adjust this to skip more or less frames
+    results = []  # List to store results
+
+    start_time = time.time()  # Start time
+    run_duration = 8  # Run for 15 seconds
+
+    while time.time() - start_time < run_duration:
+    # We get a new frame from the video
+        ret, frame = video.read()
+
+        # Skip frames to achieve about 2 fps processing
+        if not ret or frame_counter % frame_skip != 0:
+            frame_counter += 1
+            continue
+
+        # We send this frame to GazeTracking to analyze it
+        gaze.refresh(frame)
+
+        blink = 1 if gaze.is_blinking() else 0
+        direction = "right" if gaze.is_right() else "left" if gaze.is_left() else "center"
+        text = "Blinking" if blink else "Looking " + direction
+
+        # Store the result
+        if text == "Looking left":
+            results.append(1)
+        elif text == "Looking center":
+            results.append(0)
+        elif text == "Looking right":
+            results.append(1)
+        else:
+            results.append(0)
+        
+        frame_counter += 1
+
+        # Close the video file or capturing device
+    video.release()
+    # Print the results
+   
+    print(sum(results)/len(results))
+    
+
+    
+if __name__ == "__main__":
     analyze_audio_file(sys.argv[1])
     time_stamped_data(f"{AUDIO_FILE_DIR}/{sys.argv[1]}", f"{ROOT_PATH}/whisper-timestamped")
+    eye_tracking(f"{UPLOAD_PATH}/{sys.argv[2]}")
     sys.stdout.flush()
+
