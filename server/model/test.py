@@ -14,6 +14,8 @@ import sys
 import time
 import cv2
 from gaze_tracking import GazeTracking
+import math
+
 
 
 
@@ -75,6 +77,8 @@ def analyze_overall_balance_and_pauses(y, s):
 
     os.remove(rf"{TEMP_PATH}/{TEMP_FILE_NAME}")
     os.remove(rf"{TEMP_PATH}/temp.TextGrid")
+    
+    return balance, total_pauses
 
 def analyze_audio_file(audio_file):
     y, s = librosa.load(f"{AUDIO_FILE_DIR}/{audio_file}", sr=44100)
@@ -87,7 +91,8 @@ def analyze_audio_file(audio_file):
     pau = analyze_segments(y, s, total_duration, 7, "pauses")
 
     # Analyzing for overall balance and total pauses
-    analyze_overall_balance_and_pauses(y, s)
+    balance, total_pauses = analyze_overall_balance_and_pauses(y, s)
+    return balance, total_pauses
 
 def time_stamped_data(audio, model_directory):
 
@@ -123,13 +128,15 @@ def time_stamped_data(audio, model_directory):
             stutter_data.append(simplified_data[i])
         if simplified_data[i][0] == "like" or simplified_data[i][0] == "like..." or simplified_data[i][0] == "like,":
             like_data.append(simplified_data[i])
-    
+            
     print(filtered_data)
     print(repeated_words)
     print(stutter_data)
     print(like_data)
+
+    return len(filtered_data), len(repeated_words) * 2, len(stutter_data), len(like_data) * 2
     
-def eye_tracking(video_path):
+def eye_tracking(video_path):    
     gaze = GazeTracking()
     video = cv2.VideoCapture(video_path)
 
@@ -171,14 +178,26 @@ def eye_tracking(video_path):
         # Close the video file or capturing device
     video.release()
     # Print the results
-   
+    score_pen = sum(results)/len(results)
     print(sum(results)/len(results))
+    return score_pen
+    
     
 
     
 if __name__ == "__main__":
-    analyze_audio_file(sys.argv[1])
-    time_stamped_data(f"{AUDIO_FILE_DIR}/{sys.argv[1]}", f"{ROOT_PATH}/whisper-timestamped")
+    balance, total_pauses = analyze_audio_file(sys.argv[1])
+    balance_pen = abs(0.8 - balance) * 10
+    pause_pen = total_pauses / 5
+    filtered, repeat, stutter, like = time_stamped_data(f"{AUDIO_FILE_DIR}/{sys.argv[1]}", f"{ROOT_PATH}/whisper-timestamped")
+    visual_pen = eye_tracking(f"{UPLOAD_PATH}/{sys.argv[2]}")
+
+    visual_pen *= 100
+    visual_pen = math.sqrt(visual_pen)
+    score = 100 - filtered - repeat - stutter - like - balance_pen - pause_pen - visual_pen
+    print(score)
+    #print("before")
     eye_tracking(f"{UPLOAD_PATH}/{sys.argv[2]}")
+    #print("after")
     sys.stdout.flush()
 
