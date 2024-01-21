@@ -94,6 +94,8 @@ def time_stamped_data(audio, model_directory):
         return simplified, full_text.strip()
 
     simplified_data, full_transcription_text = simplify_transcription(result)
+
+    print("Transcription: " + full_transcription_text)
     
     filtered_data = []
     repeated_words = []
