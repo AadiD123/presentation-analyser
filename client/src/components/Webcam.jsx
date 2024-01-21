@@ -36,6 +36,7 @@ export default function WebcamVideo() {
   const [isScrubbable, setIsScrubbable] = useState(false);
   const [blob, setBlob] = useState(null);
   const startTime = useRef(null);
+  const endTime = useRef(null);
   const [loading, setLoading] = useState(false);
   const [vidTime, setVidTime] = useState(0);
   const { user } = useAuth0()
@@ -202,6 +203,7 @@ export default function WebcamVideo() {
 
   const stopRecording = () => {
     console.log("Stopping recording");
+    endTime.current = new Date().getSeconds();
     setShowEmotions(false);
     setLoading(true);
     console.log(emotionsMap);
@@ -286,8 +288,8 @@ export default function WebcamVideo() {
 
   return (
     <div className="flex flex-col md:flex-row justify-center p-4 md:p-8 space-y-4 md:space-y-0 md:space-x-10">
-      <div className="bg-light shadow-md rounded-md py-8 px-8">
-        <div className="flex flex-col items-center justify-evenly">
+      <div className="flex flex-col">
+        <div className="flex flex-col items-center justify-evenly bg-light shadow-md rounded-md py-8 px-8 ">
           <div className="flex space-x-1 items-center justify-between">
             {allEmotions.length > 0 ? (
               <h5 className="font-semibold">Top Emotions:</h5>
@@ -313,6 +315,7 @@ export default function WebcamVideo() {
               <div className="flex justify-center mx-auto">
                 <VideoPlayer
                   src={URL.createObjectURL(blob)}
+                  duration={endTime.current - startTime.current}
                   startTimestamp={vidTime}
                 />
               </div>
@@ -338,49 +341,145 @@ export default function WebcamVideo() {
               <div className="hidden"></div>
             )}
           </div>
+          <div className="flex space-x-2 mt-4">
+            {capturing ? (
+              <button
+                className="btn bg-dark text-sm md:text-base"
+                onClick={stopRecording}
+              >
+                Stop
+              </button>
+            ) : (
+              <>
+                {!isScrubbable && (
+                  <button
+                    className="btn bg-mid text-sm md:text-base"
+                    onClick={startRecording}
+                  >
+                    Practice Presenting
+                  </button>
+                )}
+              </>
+            )}
+            {data && !isScrubbable ? (
+              <button
+                className="btn ml-2 bg-mid text-sm md:text-base"
+                onClick={() => setIsScrubbable(!isScrubbable)}
+              >
+                Playback Recorded Video
+              </button>
+            ) : (
+              <button
+                className="btn ml-2 bg-mid text-sm md:text-base"
+                onClick={() => setIsScrubbable(!isScrubbable)}
+              >
+                Practice Again
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="mt-4">
-          {capturing ? (
-            <button
-              className="btn bg-dark text-sm md:text-base"
-              onClick={stopRecording}
-            >
-              Stop
-            </button>
-          ) : (
-            <>
-              {!isScrubbable && (
+        {data && isScrubbable ? (
+          <div className="flex flex-col justify-evenly bg-light shadow-md rounded-md py-8 px-8 mt-4">
+            <div className="flex flex-col text-left bg-light rounded-md">
+              <h2 className="font-semibold text-lg">Places to improve</h2>
+              {data.fillerWords.map((f) => (
                 <button
-                  className="btn bg-mid text-sm md:text-base"
-                  onClick={startRecording}
+                  key={f.time[0]}
+                  className="btn bg-mid text-sm md:text-base flex w-64 justify-between mt-2"
+                  onClick={() => {
+                    if (f.time[0]) {
+                      setVidTime(f.time[0]);
+                      console.log("vidTime", vidTime);
+                    }
+                  }}
                 >
-                  Practice Presenting
+                  <p>{f.word}</p>
+
+                  <p>
+                    {f.time[0].toFixed(2)}-{f.time[1].toFixed(2)}s
+                  </p>
                 </button>
+              ))}
+              {data.likes.map((f) => (
+                <button
+                  key={f.time[0]}
+                  className="btn bg-mid text-sm md:text-base flex w-64 justify-between mt-2"
+                  onClick={() => {
+                    if (f.time[0]) {
+                      setVidTime(f.time[0]);
+                      console.log("vidTime", vidTime);
+                    }
+                  }}
+                >
+                  <p>{f.word}</p>
+                  <p>
+                    {f.time[0].toFixed(2)}-{f.time[1].toFixed(2)}s
+                  </p>
+                </button>
+              ))}
+              {data.stutter.map((f) => (
+                <button
+                  key={f.time[0]}
+                  className="btn bg-mid text-sm md:text-base flex w-64 justify-between mt-2"
+                  onClick={() => {
+                    if (f.time[0]) {
+                      setVidTime(f.time[0]);
+                      console.log("vidTime", vidTime);
+                    }
+                  }}
+                >
+                  <p>{f.word}</p>
+                  <p>
+                    {f.time[0].toFixed(2)}-{f.time[1].toFixed(2)}s
+                  </p>
+                </button>
+              ))}
+              {data.articulationDatapoints.map(
+                (f, i) =>
+                  f <= 3 && (
+                    <button
+                      key={i}
+                      className="btn bg-mid text-sm md:text-base flex w-64 justify-between mt-2"
+                      onClick={() => {
+                        if (f.time[0]) {
+                          setVidTime(f.time[0]);
+                          console.log("vidTime", vidTime);
+                        }
+                      }}
+                    >
+                      <p>Too Slow</p>
+                      {/* <p>{f.time[0] - f.time[1]}s</p> */}
+                    </button>
+                  )
               )}
-            </>
-          )}
-          {data && !isScrubbable ? (
-            <button
-              className="btn ml-2 bg-mid text-sm md:text-base"
-              onClick={() => setIsScrubbable(!isScrubbable)}
-            >
-              Playback Recorded Video
-            </button>
-          ) : (
-            <button
-              className="btn ml-2 bg-mid text-sm md:text-base"
-              onClick={() => setIsScrubbable(!isScrubbable)}
-            >
-              Practice Again
-            </button>
-          )}
-        </div>
+            </div>
+          </div>
+        ) : (
+          <div></div>
+        )}
       </div>
       {showEmotions || true ? (
         <div className="flex flex-col">
-          <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md min-h-36">
-            <h2>Emotions over time</h2>
+          {data ? (
+            <div>
+              <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md">
+                <h1 className="font-semibold text-2xl">
+                  Presentation Score: {data.FinalScore.toFixed(0)}
+                </h1>
+              </div>
+              <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md mt-4 mb-4">
+                <h2 className="font-semibold">
+                  Eye contact score:{" "}
+                  {100 - data.eyeContactPenalty.toFixed(2) * 100}
+                </h2>
+              </div>
+            </div>
+          ) : (
+            <div className="hidden"></div>
+          )}
+          <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md">
+            <h2 className="font-semibold">Emotions over time</h2>
             <AreaChart
               width={430}
               height={300}
@@ -420,7 +519,7 @@ export default function WebcamVideo() {
                 }}
               />
               <CartesianGrid strokeDasharray="3 3" />
-              <Tooltip />
+              <Tooltip formatter={(value) => value.toFixed(2)} />
               <Legend verticalAlign="top" height={36} />
 
               <Area
@@ -463,7 +562,7 @@ export default function WebcamVideo() {
           </div>
           {data ? (
             <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md min-h-36 mt-4">
-              <h2>Articulation</h2>
+              <h2 className="font-semibold">Articulation</h2>
               <BarChart width={430} height={300} data={barData()}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
@@ -476,40 +575,22 @@ export default function WebcamVideo() {
           ) : (
             <div></div>
           )}
-
-          {data && isScrubbable ? (
+          {data ? (
             <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md mt-4">
-              <h4>Go to:</h4>
-              <div className="flex flex-col space-x-4">
-                {data.fillerWords.map((f) => (
-                  <button
-                    key={f.time[0]}
-                    className="btn bg-mid text-sm md:text-base"
-                    onClick={() => {
-                      if (f.time[0]) {
-                        setVidTime(f.time[0]);
-                        console.log("vidTime", vidTime);
-                      }
-                    }}
-                  >
-                    {f.word}
-                  </button>
-                ))}
-                {data.likes.map((f) => (
-                  <button
-                    key={f.time[0]}
-                    className="btn bg-mid text-sm md:text-base"
-                    onClick={() => {
-                      if (f.time[0]) {
-                        setVidTime(f.time[0]);
-                        console.log("vidTime", vidTime);
-                      }
-                    }}
-                  >
-                    {f.word}
-                  </button>
-                ))}
-              </div>
+              <h2 className="font-semibold">Syllables per second</h2>
+              <LineChart
+                width={430}
+                height={300}
+                data={articulationData()}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="index" />
+                <YAxis />
+                <Tooltip />
+                {/* <Legend /> */}
+                <Line type="monotone" dataKey="value" stroke="#82ca9d" />
+              </LineChart>
             </div>
           ) : (
             <div></div>

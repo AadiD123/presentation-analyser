@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import VideoControls from "./VideoControls";
 
-const VideoPlayer = ({ src, startTimestamp }) => {
+const VideoPlayer = ({ src, duration, startTimestamp }) => {
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(startTimestamp);
-  const [duration, setDuration] = useState(0);
+  const [dur, setDuration] = useState(duration);
   const videoRef = useRef(null);
 
   const togglePlayPause = () => {
@@ -38,9 +38,16 @@ const VideoPlayer = ({ src, startTimestamp }) => {
   }, [startTimestamp]);
 
   const onLoadedMetadata = () => {
-    const duration = videoRef.current.duration;
-    console.log("Loaded metadata:", duration);
-    setDuration(duration);
+    const videoDuration = videoRef.current.duration;
+    // Check if the duration is finite
+    if (isFinite(videoDuration)) {
+      setDuration(videoDuration);
+    } else {
+      // Handle the case for live streams or unknown duration
+      console.log("Video duration is unknown or infinite.");
+      // Set a default duration or handle this case as needed
+    }
+    console.log("Loaded metadata:", videoDuration);
   };
 
   const onTimeUpdate = () => {
@@ -63,6 +70,8 @@ const VideoPlayer = ({ src, startTimestamp }) => {
     }
   }, [startTimestamp]);
 
+  console.log(`Current Time: ${currentTime}, Duration: ${dur}`, videoRef);
+
   return (
     <div>
       <video
@@ -70,6 +79,7 @@ const VideoPlayer = ({ src, startTimestamp }) => {
         src={src}
         type="video/webm"
         controls={false}
+        preload="metadata"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
       >
@@ -79,7 +89,7 @@ const VideoPlayer = ({ src, startTimestamp }) => {
         playing={playing}
         onPlayPause={togglePlayPause}
         onScrub={handleScrub}
-        duration={duration}
+        duration={dur}
         currentTime={currentTime}
       />
     </div>
