@@ -29,7 +29,7 @@ app.post('/upload-video', upload.single('video'), async (req, res) => {
     const videoFilePath = `./uploads/${videoFileName}`;
     fs.writeFileSync(videoFilePath, videoBlob);
     const wavFileName = `audio_${timestamp}.wav`;
-    const wavFilePath = `./uploads/${wavFileName}`;
+    const wavFilePath = `./model/audio_files/${wavFileName}`;
 
     ffmpeg()
       .input(videoFilePath)
