@@ -15,7 +15,7 @@ import sys
 
 
 
-ROOT_PATH = "/Users/jag/Downloads/presentation-analyser-main/model" 
+ROOT_PATH = "/Users/arnav/git/presentation-analyser/model" 
 
 mysp = __import__("my-voice-analysis")
 AUDIO_FILE_DIR = rf"{ROOT_PATH}/audio_files"
@@ -113,5 +113,5 @@ def time_stamped_data(audio, model_directory):
     
 
 if __name__ == "__main__":
-    analyze_audio_file("jag5.wav")
-    time_stamped_data(f"{AUDIO_FILE_DIR}/bagel.wav", "/Users/jag/Downloads/presentation-analyser-main/whisper-timestamped")
+    analyze_audio_file("bagel.wav")
+    time_stamped_data(f"{AUDIO_FILE_DIR}/bagel.wav", "/Users/arnav/git/presentation-analyser/model")
