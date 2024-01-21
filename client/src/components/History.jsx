@@ -54,10 +54,11 @@ export default function History() {
     }));
 
     return (
-        <div className="history-container">
+        <div className="history-container flex flex-col items-center mt-10 bg-white shadow-md" style={{marginInline: "200px"}}>
+          <h1 className="font-semibold">History</h1>
             <AreaChart
-                width={730}
-                height={250}
+                width={1000}
+                height={300}
                 data={processedData}
                 margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
                 onClick={handleClick}
