@@ -6,13 +6,15 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const mysql = require("mysql2");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const app = express();
 
 const connection = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "crondon123",
+  password: process.env.SQLPASSWD,
   database: "prosody"
 });
 
@@ -42,9 +44,10 @@ if (!fs.existsSync(audioDir)) {
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-app.post("/upload-video", upload.single("video"), async (req, res) => {
+app.post("/upload-video/:email", upload.single("video"), async (req, res) => {
   try {
     console.log("Received video upload request");
+    const user_id = req.params.email;
     const videoBlob = req.file.buffer;
     const timestamp = Date.now();
     const videoFileName = `video_${timestamp}.webm`;
@@ -154,7 +157,7 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
 
       // Insert into scores table
       const insertScoresQuery = `INSERT INTO scores (user_id, score, timestamp, video_id) VALUES (?, ?, ?, ?)`;
-      const scoresValues = [10, parsedData['FinalScore'], timestamp, videoId];
+      const scoresValues = [user_id, parsedData['FinalScore'], timestamp, videoId];
 
       connection.query(insertScoresQuery, scoresValues, (err, scoresResult) => {
         if (err) {
@@ -185,10 +188,10 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
 app.get("/getscores/:user_id", (req, res) => {
   const user_id = req.params.user_id;
   connection.query(
-    `SELECT * FROM scores WHERE user_id = ${user_id}`,
+    `SELECT * FROM scores WHERE user_id = '${user_id}'`,
     (err, rows, fields) => {
       if (err) {
-        console.log("Error in query");
+        console.log(err);
         res.status(500).send("Error in query");
       } else {
         console.log("Successful query");
@@ -201,17 +204,37 @@ app.get("/getscores/:user_id", (req, res) => {
 app.get("/getvideo/:video_id", (req, res) => {
   const video_id = req.params.video_id;
   connection.query(
-    `SELECT * FROM videos WHERE video_id = ${video_id}`,
+    `SELECT * FROM videos WHERE id = ${video_id}`,
     (err, rows, fields) => {
       if (err) {
-        console.log("Error in query");
+        console.log(err);
         res.status(500).send("Error in query");
       } else {
         if (rows.length === 0) {
           res.status(404).send('Video not found');
         } else {
           const filepath = rows[0].filepath;
-          res.sendFile(filepath, { root: __dirname });
+          res.type('video/webm')
+          res.sendFile(filepath);
+        }
+      }
+    }
+  );
+});
+
+app.get("/getdata/:video_id", (req, res) => {
+  const video_id = req.params.video_id;
+  connection.query(
+    `SELECT * FROM videos WHERE id = ${video_id}`,
+    (err, rows, fields) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Error in query");
+      } else {
+        if (rows.length === 0) {
+          res.status(404).send('Video not found');
+        } else {
+          res.send(rows[0].metadata);
         }
       }
     }
@@ -245,6 +268,27 @@ app.post("/login/:email", (req, res) => {
           // User found, send the user data
           res.status(200).send(rows[0]);
         }
+      }
+    }
+  );
+});
+
+const today = new Date().toISOString().slice(0, 10);
+
+app.get("/getleaderboard", (req, res) => {
+  connection.query(
+    `SELECT user_id, score FROM scores 
+     WHERE DATE(timestamp) = ?
+     ORDER BY score DESC 
+     LIMIT 10`,
+    [today],
+    (err, rows, fields) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Error in query");
+      } else {
+        console.log("Successful query");
+        res.status(200).send(rows);
       }
     }
   );

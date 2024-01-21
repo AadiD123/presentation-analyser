@@ -7,6 +7,7 @@ import History from "./components/History";
 import { useEffect } from "react";
 import axios from "axios";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Leaderboard from "./components/Leaderboard";
 
 function App() {
   const videoSrc = "./src/assets/T-Pain.mp4";
@@ -28,6 +29,7 @@ function App() {
           <Routes>
             <Route path="/" element={<WebcamVideo />} />
             <Route path="history" element={<History />} />
+            <Route path="leaderboard" element={<Leaderboard />} />
           </Routes>
         </BrowserRouter>
       </div>

@@ -181,8 +181,6 @@ def eye_tracking(video_path):
     score_pen = sum(results)/len(results)
     print(sum(results)/len(results))
     return score_pen
-    
-    
 
     
 if __name__ == "__main__":
@@ -197,7 +195,7 @@ if __name__ == "__main__":
     score = 100 - filtered - repeat - stutter - like - balance_pen - pause_pen - visual_pen
     print(score)
     #print("before")
-    eye_tracking(f"{UPLOAD_PATH}/{sys.argv[2]}")
+    #eye_tracking(f"{UPLOAD_PATH}/{sys.argv[2]}")
     #print("after")
     sys.stdout.flush()
 
