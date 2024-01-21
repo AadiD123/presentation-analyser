@@ -67,12 +67,14 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
         const pythonProcess = spawn("python3", [
           "./model/test.py",
           wavFileName,
-        ]);
+        ])
+
         let parsedData = await new Promise((resolve, reject) => {
           let dataChunks = [];
           pythonProcess.stdout.on("data", (data) => {
             dataChunks.push(data);
           });
+
 
           pythonProcess.stdout.on("end", () => {
             const dataString = Buffer.concat(dataChunks).toString();
