@@ -20,11 +20,15 @@
 }
 
 .dotted-background {
+  position: fixed;
   height: 100%;
+  width: 100%;
+  overflow: scroll;
   background-size: 10px 10px; /* Adjust this value to make the dots smaller */
   background-image: radial-gradient(circle, #b1b1b1 1px, transparent 1px),
     radial-gradient(circle, transparent 1px, #ffffff 1px);
   background-position: 0 0, 7px 7px; /* You might also need to adjust background-position */
+  padding-bottom: 100px;
 }
 
 a {
@@ -39,8 +43,6 @@ a:hover {
 body {
   display: flex;
   place-items: center;
-  /* min-width: 320px;
-  min-height: 100vh; */
 }
 
 h1 {

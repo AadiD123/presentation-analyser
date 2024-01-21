@@ -10,6 +10,8 @@ export default function WebcamVideo() {
   const [capturing, setCapturing] = useState(false);
   const cap2 = useRef(false);
   const [webcam, setWebcam] = useState(false);
+  const [maxEmotions, setMaxEmotions] = useState([]);
+  const [showEmotions, setShowEmotions] = useState(false); // New state to control the display of emotions
   var chunks = [];
 
   const getFrame = useCallback(() => {
@@ -22,7 +24,6 @@ export default function WebcamVideo() {
 
   const [emotions, setEmotions] = useState([]);
 
-  const [maxEmotions, setMaxEmotions] = useState([]);
   const onEmotionUpdate = useCallback((newEmotions) => {
     if (newEmotions.length == 0) {
       return;
@@ -103,6 +104,7 @@ export default function WebcamVideo() {
   const startRecording = () => {
     console.log("Starting recording");
     setCapturing(true);
+    setShowEmotions(true);
     cap2.current = true;
     const stream = webcamRef.current.stream;
     mediaRecorderRef.current = new MediaRecorder(stream);
@@ -123,10 +125,12 @@ export default function WebcamVideo() {
 
   const stopRecording = () => {
     console.log("Stopping recording");
+    setShowEmotions(false);
     chunks = [];
     mediaRecorderRef.current.stop();
     setCapturing(false);
     cap2.current = false;
+    setMaxEmotions([]);
   };
 
   const handleWebcam = () => {
@@ -182,20 +186,28 @@ export default function WebcamVideo() {
           )}
         </div>
       </div>
-      <div className="flex flex-col text-left bg-light p-6 md:p-10 shadow-md rounded-md">
-        <h4 className="font-bold text-base md:text-lg">Top Emotions List</h4>
-        <div>
-          {maxEmotions.map((e) => (
-            <div
-              key={e.name}
-              className="bg-mid my-4 px-4 py-2 rounded-md flex justify-between"
-            >
-              <p className="text-sm md:text-base">{e.name}</p>
-              <p className="text-sm md:text-base"> {e.score.toFixed(3)}</p>
-            </div>
-          ))}
+      {showEmotions ? (
+        <div
+          className={`flex flex-col text-left bg-light p-6 md:p-10 shadow-md rounded-md transition-opacity duration-500 ${
+            showEmotions ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <h4 className="font-bold text-base md:text-lg">Top Emotions List</h4>
+          <div>
+            {maxEmotions.map((e) => (
+              <div
+                key={e.name}
+                className="bg-mid my-4 px-4 py-2 rounded-md flex justify-between"
+              >
+                <p className="text-sm md:text-base">{e.name}</p>
+                <p className="text-sm md:text-base"> {e.score.toFixed(3)}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="hidden"></div>
+      )}
     </div>
   );
 }
