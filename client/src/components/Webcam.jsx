@@ -37,6 +37,7 @@ export default function WebcamVideo() {
   const [blob, setBlob] = useState(null);
   const startTime = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [vidTime, setVidTime] = useState(0);
   const { user } = useAuth0()
 
   const [emotionsMap, setEmotionsMap] = useState([
@@ -312,7 +313,7 @@ export default function WebcamVideo() {
               <div className="flex justify-center mx-auto">
                 <VideoPlayer
                   src={URL.createObjectURL(blob)}
-                  startTimestamp={0}
+                  startTimestamp={vidTime}
                 />
               </div>
             ) : (
@@ -348,24 +349,31 @@ export default function WebcamVideo() {
               Stop
             </button>
           ) : (
-            <button
-              className="btn bg-mid text-sm md:text-base"
-              onClick={startRecording}
-            >
-              Practice Presenting
-            </button>
+            <>
+              {!isScrubbable && (
+                <button
+                  className="btn bg-mid text-sm md:text-base"
+                  onClick={startRecording}
+                >
+                  Practice Presenting
+                </button>
+              )}
+            </>
           )}
           {data && !isScrubbable ? (
             <button
               className="btn ml-2 bg-mid text-sm md:text-base"
-              onClick={() => {
-                setIsScrubbable(!isScrubbable);
-              }}
+              onClick={() => setIsScrubbable(!isScrubbable)}
             >
               Playback Recorded Video
             </button>
           ) : (
-            <div></div>
+            <button
+              className="btn ml-2 bg-mid text-sm md:text-base"
+              onClick={() => setIsScrubbable(!isScrubbable)}
+            >
+              Practice Again
+            </button>
           )}
         </div>
       </div>
@@ -464,6 +472,44 @@ export default function WebcamVideo() {
                 {/* <Legend /> */}
                 <Bar dataKey="data" fill="#8884d8" />
               </BarChart>
+            </div>
+          ) : (
+            <div></div>
+          )}
+
+          {data && isScrubbable ? (
+            <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md mt-4">
+              <h4>Go to:</h4>
+              <div className="flex flex-col space-x-4">
+                {data.fillerWords.map((f) => (
+                  <button
+                    key={f.time[0]}
+                    className="btn bg-mid text-sm md:text-base"
+                    onClick={() => {
+                      if (f.time[0]) {
+                        setVidTime(f.time[0]);
+                        console.log("vidTime", vidTime);
+                      }
+                    }}
+                  >
+                    {f.word}
+                  </button>
+                ))}
+                {data.likes.map((f) => (
+                  <button
+                    key={f.time[0]}
+                    className="btn bg-mid text-sm md:text-base"
+                    onClick={() => {
+                      if (f.time[0]) {
+                        setVidTime(f.time[0]);
+                        console.log("vidTime", vidTime);
+                      }
+                    }}
+                  >
+                    {f.word}
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
             <div></div>

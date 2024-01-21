@@ -4,8 +4,8 @@ import { Bars3Icon } from "@heroicons/react/24/outline";
 import { useAuth0 } from "@auth0/auth0-react";
 
 const navigation = [
-  { name: "Video", href: "#", current: true },
-  { name: "Audio", href: "#", current: false },
+  { name: "Practice", href: "/", current: true },
+  { name: "History", href: "/history", current: false },
 ];
 
 function classNames(...classes) {
