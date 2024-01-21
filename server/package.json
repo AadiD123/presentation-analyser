@@ -8,6 +8,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.10",
     "child_process": "^1.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.2",
