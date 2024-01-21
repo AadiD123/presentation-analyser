@@ -15,6 +15,10 @@ import {
   ResponsiveContainer,
   Label,
   AreaChart,
+  Scatter,
+  ScatterChart,
+  BarChart,
+  Bar
   // linearGradient,
 } from "recharts";
 
@@ -24,10 +28,12 @@ export default function WebcamVideo() {
   const [capturing, setCapturing] = useState(false);
   const cap2 = useRef(false);
   const [webcam, setWebcam] = useState(false);
-
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState(null)
   const [allEmotions, setAllEmotions] = useState([]);
   const [showEmotions, setShowEmotions] = useState(false);
-  const startTime = useRef(null);
+  const startTime = useRef(null)
+  const stopTime = useRef(null)
 
   const [emotionsMap, setEmotionsMap] = useState([
     {
@@ -122,6 +128,7 @@ export default function WebcamVideo() {
       await axios
         .post("http://localhost:3000/upload-video", formData)
         .then((res) => {
+          setData(res.data)
           console.log(res);
         });
     } catch (error) {
@@ -185,6 +192,8 @@ export default function WebcamVideo() {
   };
 
   const stopRecording = () => {
+    stopTime.current = new Date().getSeconds()
+
     console.log("Stopping recording");
     setShowEmotions(false);
     console.log(emotionsMap);
@@ -210,6 +219,39 @@ export default function WebcamVideo() {
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
+
+  const articulationData = () => {
+    if(!data) {
+      return []
+    }
+
+    return data.articulationDatapoints.map((v, i) => {return {value: v, index: i}})
+  }
+
+  const barData = () => {
+    console.log("data", data)
+    if (!data) {
+      return []
+    }
+    const numFillers = data.fillerWords.length
+    const numPauses = data.totalNumberOfPauses
+    const numRepeats = data.repeats.length
+    const numStutter = data.stutter.length
+
+    return [{
+      name: "Fillers",
+      data: numFillers
+    },{
+      name: "Pauses",
+      data: numPauses
+    },{
+      name: "Repeats",
+      data: numRepeats
+    },{
+      name: "Stutters",
+      data: numStutter
+    },]
+  }
 
   useEffect(() => {
     if (capturing) {
@@ -379,6 +421,23 @@ export default function WebcamVideo() {
                 fill="url(#colorJoy)"
               />
             </AreaChart>
+            <BarChart width={730} height={250} data={barData()}>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="name" />
+  <YAxis />
+  <Tooltip />
+  {/* <Legend /> */}
+  <Bar dataKey="data" fill="#8884d8" />
+</BarChart>
+<LineChart width={730} height={250} data={articulationData()}
+  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="index" />
+  <YAxis />
+  <Tooltip />
+  {/* <Legend /> */}
+  <Line type="monotone" dataKey="value" stroke="#82ca9d" />
+</LineChart>
           </div>
           {capturing ? (
             <div className="flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md">
