@@ -14,11 +14,11 @@ import whisper_timestamped as whisper
 import sys
 
 
+ROOT_PATH = "/Users/armanyamaheshwari/Documents/presentation-analyser/model" 
 
-ROOT_PATH = "/Users/arnav/git/presentation-analyser/model" 
 
 mysp = __import__("my-voice-analysis")
-AUDIO_FILE_DIR = rf"{ROOT_PATH}/audio_files"
+AUDIO_FILE_DIR = rf"{ROOT_PATH}ffmpeg -version/audio_files"
 TEMP_PATH = rf"{ROOT_PATH}/temp"
 TEMP_FILE_NAME = "temp.wav"
 
@@ -111,7 +111,16 @@ def time_stamped_data(audio, model_directory):
     print(repeated_words)
     print(like_data)
     
+      
+
+
+
+
+
+
+        
+
 
 if __name__ == "__main__":
-    analyze_audio_file("bagel.wav")
-    time_stamped_data(f"{AUDIO_FILE_DIR}/bagel.wav", "/Users/arnav/git/presentation-analyser/model")
+    analyze_audio_file("record.wav")
+    time_stamped_data("record.wav", "./whisper-timestamped")
