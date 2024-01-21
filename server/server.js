@@ -78,7 +78,6 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
 
           pythonProcess.stdout.on("end", () => {
             const dataString = Buffer.concat(dataChunks).toString();
-            console.log("Received data from Python:", dataString);
             const lines = dataString.split("\n");
 
             // Initialize parsedData object
