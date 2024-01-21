@@ -6,7 +6,7 @@ export default function useSocket({ getFrame, setEmotions, onEmotionUpdate, capt
   const mountRef = useRef(true);
   const numReconnects = useRef(0);
   const maxReconnects = 3;
-  const RELOAD_SPEED = 2000
+  const RELOAD_SPEED = 100
 
   useEffect(() => {
     console.log("Mounting component");
