@@ -54,26 +54,92 @@ app.post('/upload-video', upload.single('video'), async (req, res) => {
     const wavFileName = `audio_${timestamp}.wav`;
     const wavFilePath = path.join(audioDir, wavFileName);
     console.log('WAV file started:', wavFilePath);
-    const ffmpegProcess = ffmpeg(videoFilePath)
+
+    ffmpeg(videoFilePath)
       .output(wavFilePath)
-      .on('end', () => {
+      .on('end', async () => {
         console.log('WAV file created:', wavFilePath);
-        res.send('Video uploaded');
+
+        const pythonProcess = spawn('python3', ["./model/test.py", wavFileName]);
+        let parsedData = await new Promise((resolve, reject) => {
+          let dataChunks = [];
+          pythonProcess.stdout.on('data', (data) => {
+            dataChunks.push(data);
+          });
+
+          pythonProcess.stdout.on('end', () => {
+            const dataString = Buffer.concat(dataChunks).toString();
+            const lines = dataString.split('\n');
+
+            // Initialize parsedData object
+            let parsedData = {
+              articulationDatapoints: [],
+              pausesDatapoints: [],
+              overallBalance: null,
+              totalNumberOfPauses: null,
+              transcription: "",
+              fillerWords: [],
+              repeats: [],
+              stutter: [],
+              likes: [],
+            };
+
+            // Parsing the data here
+            parsedData['articulationDatapoints'] = JSON.parse(lines[0]);
+            parsedData['pausesDatapoints'] = JSON.parse(lines[1]);
+            parsedData['overallBalance'] = parseFloat(lines[2].split(': ')[1]);
+            parsedData['totalNumberOfPauses'] = parseFloat(lines[3].split(': ')[1]);
+
+            let i = 4;
+            while (lines[i][0] === '[') {
+              i++;
+            }
+            parsedData['transcription'] = lines[i].split(': ')[1];
+            let valid_json_str = lines[i+1].replace(/'/g, '"');
+            let input_data = JSON.parse(valid_json_str);
+            parsedData['fillerWords'] = input_data.map(([word, time]) => ({
+              word,
+              time
+            }));
+             valid_json_str = lines[i+2].replace(/'/g, '"');
+             input_data = JSON.parse(valid_json_str);
+            parsedData['repeats'] = input_data.map(([word, time]) => ({
+              word,
+              time
+            }));
+             valid_json_str = lines[i+3].replace(/'/g, '"');
+             input_data = JSON.parse(valid_json_str);
+            parsedData['stutter'] = input_data.map(([word, time]) => ({
+              word,
+              time
+            }));
+             valid_json_str = lines[i+4].replace(/'/g, '"');
+             input_data = JSON.parse(valid_json_str);
+            parsedData['likes'] = input_data.map(([word, time]) => ({
+              word,
+              time
+            }));
+            console.log(parsedData);
+            resolve(parsedData);
+          });
+
+          pythonProcess.on('error', (err) => {
+            reject(err);
+          });
+        });
+
+        res.status(200).send(parsedData);
       })
       .on('error', (err) => {
         console.error('Error creating WAV file:', err);
         res.status(500).send('Error creating WAV file');
       })
       .run();
-    
-    const pythonProcess = spawn('python3', ["./model/test.py", wavFileName]);
-
-        pythonProcess.stdout.on('data', (data) => {
-          console.log(data.toString());
-        });
   } catch (error) {
     console.error('Error uploading video:', error);
-    res.status(500).send('Error uploading video');
+    if (!res.headersSent) {
+      res.status(500).send('Error uploading video');
+    }
   }
 });
 

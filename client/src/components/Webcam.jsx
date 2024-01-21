@@ -180,30 +180,59 @@ export default function WebcamVideo() {
     setAllEmotions([]);
   };
 
-  useEffect(() => {
-    console.log("update capturing", capturing);
-
-    if (capturing) {
-      capturePhoto();
-    }
-  }, [capturing]);
-
   const videoConstraints = {
     facingMode: "user",
   };
 
+  const [timer, setTimer] = useState(0);
+  const timerRef = useRef(null);
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
+
+  useEffect(() => {
+    if (capturing) {
+      capturePhoto();
+      timerRef.current = setInterval(() => {
+        setTimer((prevTimer) => prevTimer + 1);
+      }, 1000); // Increment timer every second
+    } else {
+      clearInterval(timerRef.current);
+      setTimer(0); // Reset timer when not capturing
+    }
+
+    return () => {
+      clearInterval(timerRef.current);
+    };
+  }, [capturing]);
+
   return (
     <div className="flex flex-col md:flex-row justify-center p-4 md:p-12 space-y-4 md:space-y-0 md:space-x-10">
       <div className="bg-light py-6 px-6 md:py-10 md:px-24 shadow-md rounded-md">
-        <Webcam
-          audio={true}
-          muted={true}
-          mirrored={true}
-          ref={webcamRef}
-          videoConstraints={videoConstraints}
-          className="w-full md:max-w-lg self-center rounded-md"
-        />
-        
+        <div style={{ position: "relative" }}>
+          <Webcam
+            audio={true}
+            muted={true}
+            mirrored={true}
+            ref={webcamRef}
+            videoConstraints={videoConstraints}
+            className="w-full md:max-w-lg self-center rounded-md"
+          />
+          {capturing ? (
+            <div
+              className="bg-mid px-6 py-2 rounded-md md:text-base"
+              style={{ position: "absolute", bottom: "5px", left: "10px" }}
+            >
+              Timer: {formatTime(timer)}
+            </div>
+          ) : (
+            <div className="hidden"></div>
+          )}
+        </div>
+
         <div className="mt-8">
           {capturing ? (
             <button
@@ -217,7 +246,7 @@ export default function WebcamVideo() {
               className="btn bg-mid text-sm md:text-base"
               onClick={startRecording}
             >
-              Practice
+              Practice Presenting
             </button>
           )}
           {chunks.length > 0 && (
@@ -264,21 +293,24 @@ export default function WebcamVideo() {
       </div>
       {showEmotions ? (
         <div
-          className={`flex flex-col text-left bg-light p-6 md:p-10 shadow-md rounded-md transition-opacity duration-500 ${
+          className={`flex flex-col text-left bg-light p-6 md:p-8 shadow-md rounded-md transition-opacity duration-500 ${
             showEmotions ? "opacity-100" : "opacity-0"
           }`}
         >
           <h4 className="font-bold text-base md:text-lg">Top Emotions List</h4>
           <div>
-            {allEmotions.slice(0, 3).map((e) => (
-              <div
-                key={e.name}
-                className="bg-mid my-4 px-4 py-2 rounded-md flex justify-between"
-              >
-                <p className="text-sm md:text-base">{e.name}</p>
-                <p className="text-sm md:text-base"> {e.score.toFixed(3)}</p>
-              </div>
-            ))}
+            {allEmotions
+              .sort((a, b) => b.score - a.score) // Sort in descending order based on score
+              .slice(0, 3) // Keep only the top three emotions
+              .map((e) => (
+                <div
+                  key={e.name}
+                  className="bg-mid my-4 px-4 py-2 rounded-md flex space-x-4 justify-between w-52"
+                >
+                  <p className="text-sm md:text-base">{e.name}</p>
+                  <p className="text-sm md:text-base"> {e.score.toFixed(2)}</p>
+                </div>
+              ))}
           </div>
         </div>
       ) : (
