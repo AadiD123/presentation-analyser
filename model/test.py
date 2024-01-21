@@ -18,7 +18,7 @@ import sys
 ROOT_PATH = "/Users/armanyamaheshwari/Documents/presentation-analyser/model" 
 
 mysp = __import__("my-voice-analysis")
-AUDIO_FILE_DIR = rf"{ROOT_PATH}/audio_files"
+AUDIO_FILE_DIR = rf"{ROOT_PATH}ffmpeg -version/audio_files"
 TEMP_PATH = rf"{ROOT_PATH}/temp"
 TEMP_FILE_NAME = "temp.wav"
 

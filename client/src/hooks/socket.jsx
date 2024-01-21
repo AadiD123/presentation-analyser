@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 
-export default function useSocket({ getFrame, setEmotions, onEmotionUpdate }) {
+export default function useSocket({ getFrame, setEmotions, onEmotionUpdate, capturing }) {
+  console.log('render', capturing.current)
   const socketRef = useRef(null);
   const mountRef = useRef(true);
   const numReconnects = useRef(0);
@@ -49,13 +50,17 @@ export default function useSocket({ getFrame, setEmotions, onEmotionUpdate }) {
     // } else {
     //   console.warn("No video recorder exists yet to use with the open socket");
     // }
-    await capturePhoto();
+    // await capturePhoto();
   }
 
-  async function socketOnMessage(event) {
+  const socketOnMessage = useCallback((event) => {
+    // if (!capturing.current) {
+    //   console.log("not capturing.current", event)
+    //   return
+    // }
     // setStatus("");
     const response = JSON.parse(event.data);
-    console.log("Got response", response);
+    console.log("Got response", response, capturing.current);
     const predictions = response.face?.predictions || [];
     const warning = response.face?.warning || "";
     const error = response.error;
@@ -84,15 +89,15 @@ export default function useSocket({ getFrame, setEmotions, onEmotionUpdate }) {
       }
     });
     // setTrackedFaces(newTrackedFaces);
-    if (!test) {
+    if (true) {
+      console.log('rerequest capture', capturing.current)
       setTimeout(() => {
-        console.log("capture photo");
         capturePhoto();
       }, 2000);
     }
-  }
+  })
 
-  async function socketOnClose(event) {
+  const socketOnClose = useCallback((event) => {
     console.log("Socket closed");
 
     if (mountRef.current === true) {
@@ -102,9 +107,9 @@ export default function useSocket({ getFrame, setEmotions, onEmotionUpdate }) {
     } else {
       console.log("Component unmounted, will not reconnect...");
     }
-  }
+  })
 
-  async function socketOnError(event) {
+  const socketOnError = useCallback((event) => {
     console.error("Socket failed to connect: ", event);
     if (numReconnects.current >= maxReconnects) {
       //   setStatus(`Failed to connect to the Hume API (${authContext.environment}).
@@ -114,9 +119,9 @@ export default function useSocket({ getFrame, setEmotions, onEmotionUpdate }) {
       numReconnects.current++;
       console.warn(`Connection attempt ${numReconnects.current}`);
     }
-  }
+  })
 
-  function stopEverything() {
+  const stopEverything = useCallback(() => {
     console.log("Stopping everything...");
     mountRef.current = false;
     const socket = socketRef.current;
@@ -135,7 +140,7 @@ export default function useSocket({ getFrame, setEmotions, onEmotionUpdate }) {
     // } else {
     //   console.warn("Could not stop recorder, not initialized yet");
     // }
-  }
+  })
 
   //   async function onVideoReady(videoElement) {
   //     console.log("Video element is ready");
@@ -161,7 +166,12 @@ export default function useSocket({ getFrame, setEmotions, onEmotionUpdate }) {
   //     }
   //   }
 
-  async function capturePhoto() {
+  const capturePhoto = useCallback(() => {
+    if (capturing.current !== true) {
+      console.log("failed to send req, not capturing.current", capturing.current)
+      return null
+    }
+    console.log("capture photo", capturing.current)
     // const recorder = recorderRef.current;
 
     // if (!recorder) {
@@ -170,7 +180,7 @@ export default function useSocket({ getFrame, setEmotions, onEmotionUpdate }) {
     // }
 
     // const photoBlob = await recorder.takePhoto();
-    const photoBlob = await getFrame();
+    const photoBlob = getFrame();
     if (photoBlob !== null) {
       sendRequest(photoBlob);
     } else {
@@ -179,9 +189,10 @@ export default function useSocket({ getFrame, setEmotions, onEmotionUpdate }) {
       // });
     }
     return null;
-  }
+  }, [capturing.current])
 
   async function sendRequest(photoBlob) {
+
     const socket = socketRef.current;
 
     if (!socket) {

@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import useSocket from "../hooks/socket";
+import { extMap, sortAndFilterEmotions } from "../utils/emotionFilter";
 import axios from 'axios';
 
 export default function WebcamVideo() {
   const webcamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const [capturing, setCapturing] = useState(false);
+  const cap2 = useRef(false)
   const [webcam, setWebcam] = useState(false);
   var chunks = [];
 
@@ -22,39 +24,29 @@ export default function WebcamVideo() {
   const [emotions, setEmotions] = useState([]);
 
   const [maxEmotions, setMaxEmotions] = useState([]);
-  const onEmotionUpdate = useCallback((emotions) => {
-    console.log("change emotions: ", emotions);
-    if (emotions.length == 0) {
+  const onEmotionUpdate = useCallback((newEmotions) => {
+    if (newEmotions.length == 0) {
       return;
     }
+    const n = sortAndFilterEmotions(newEmotions, 3)
+    console.log("NNNN", n)
+    setMaxEmotions(n)
 
-    // setMinEmotions((m) => extMap(m, emotions, (a, b) => a < b));
-    setMaxEmotions((m) => extMap(m, emotions, (a, b) => a > b));
   });
-  // const [socket, stopEverything, capturePhoto] = useSocket({
-  //   getFrame,
-  //   setEmotions,
-  //   onEmotionUpdate,
-  // });
+  const [socket, stopEverything, capturePhoto] = useSocket({
+    getFrame,
+    setEmotions,
+    onEmotionUpdate,
+    capturing: cap2
+  });
 
-  function extMap(oldMins, newEmotions, compare) {
-    if (oldMins.length == 0) return newEmotions;
-    const newMinEmotions = [];
-    for (let i = 0; i < newEmotions.length; i++) {
-      const newEmotion = newEmotions[i];
-      for (let j = 0; j < newEmotions.length; j++) {
-        const oldMin = oldMins[j];
-        if (oldMin.name == newEmotion.name) {
-          newMinEmotions.push(
-            compare(newEmotion.score, oldMin.score) ? newEmotion : oldMin
-          );
-        }
-      }
-    }
-    return newMinEmotions;
-  }
+  
 
   const handleStartCaptureClick = useCallback(() => {
+
+    setCapturing(true);
+    cap2.current = true
+
     const stream = webcamRef.current.stream;
     mediaRecorderRef.current = new MediaRecorder(stream);
 
@@ -75,6 +67,7 @@ export default function WebcamVideo() {
   const handleStopCaptureClick = useCallback(() => {
     mediaRecorderRef.current.stop();
     setCapturing(false);
+    cap2.current = false
     if (chunks.length) {
       sendVideoToServer(chunks);
     }
@@ -140,10 +133,12 @@ export default function WebcamVideo() {
   };
 
   useEffect(() => {
-    if (webcam) {
+    console.log("update capturing", capturing)
+
+    if (capturing) {
       capturePhoto();
     }
-  }, [webcam]);
+  }, [capturing]);
 
   const videoConstraints = {
     facingMode: "user",
@@ -191,9 +186,6 @@ export default function WebcamVideo() {
       <div className="m-12 flex flex-col justify-center">
         <div>
           {maxEmotions
-            .slice() // Create a shallow copy to avoid mutating the original array
-            .sort((a, b) => b.score - a.score) // Sort in descending order by score
-            .slice(0, 3) // Limit to the top 3 elements
             .map((e) => (
               <div key={e.name}>
                 <p>
