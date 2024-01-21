@@ -10,9 +10,9 @@ function App() {
       <div className="dotted-background">
         <Navbar />
         <WebcamVideo />
-        <div className="flex justify-center mx-auto" style={{ width: "50%" }}>
+        {/* <div className="flex justify-center mx-auto" style={{ width: "50%" }}>
           <VideoPlayer src={videoSrc} startTimestamp={2.8} />
-        </div>
+        </div> */}
       </div>
       <script src="webgazer.js" type="text/javascript" />
     </>
