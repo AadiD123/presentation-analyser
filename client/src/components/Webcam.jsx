@@ -32,14 +32,14 @@ export default function WebcamVideo() {
   const [emotionsMap, setEmotionsMap] = useState([{
     Calmness: 0,
     Interest: 0,
-    Confusion: 0,
-    Awkwardness: 0,
+    Boredom: 0,
+    Joy: 0,
     time: 0
   }]);
 
   var chunks = [];
 
-  // calmness, interest, confusion, awkdness
+  // calmness, interest, Boredom, awkdness
 
   const getFrame = useCallback(() => {
     if (webcamRef !== null && webcamRef.current !== null) {
@@ -117,7 +117,11 @@ export default function WebcamVideo() {
       const formData = new FormData();
       formData.append("video", blob, "recorded-video.webm");
 
-      await axios.post("http://localhost:3000/upload-video", formData).then((res) => {console.log(res)});
+      await axios
+        .post("http://localhost:3000/upload-video", formData)
+        .then((res) => {
+          console.log(res);
+        });
     } catch (error) {
       console.error("Error uploading video:", error);
     }
@@ -130,12 +134,12 @@ export default function WebcamVideo() {
     let newData = {
       Calmness: 0,
       Interest: 0,
-      Confusion: 0,
-      Awkwardness: 0,
+      Boredom: 0,
+      Joy: 0,
       time: new Date().getSeconds() - startTime.current
     }
     for (let e of allEmotions) {
-      if (['Calmness', 'Interest', 'Confusion', 'Awkwardness'].includes(e.name)) {
+      if (['Calmness', 'Interest', 'Boredom', 'Joy'].includes(e.name)) {
         console.log("pushing", e.name, e.score);
         newData[e.name] = e.score;
       }
@@ -258,7 +262,7 @@ export default function WebcamVideo() {
             </button>
           )}
         </div>
-        <AreaChart width={730} height={250} data={emotionsMap}
+        <AreaChart width={730} height={300} data={emotionsMap}
   margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
   <defs>
     <linearGradient id="colorCalmness" x1="0" y1="0" x2="0" y2="1">
@@ -269,11 +273,11 @@ export default function WebcamVideo() {
       <stop offset="5%" stopColor="#83a6ed" stopOpacity={0.8}/>
       <stop offset="95%" stopColor="#83a6ed" stopOpacity={0}/>
     </linearGradient>
-    <linearGradient id="colorConfusion" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="colorBoredom" x1="0" y1="0" x2="0" y2="1">
       <stop offset="5%" stopColor="#a4de6c" stopOpacity={0.8}/>
       <stop offset="95%" stopColor="#a4de6c" stopOpacity={0}/>
     </linearGradient>
-    <linearGradient id="colorAwkwardness" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="colorJoy" x1="0" y1="0" x2="0" y2="1">
       <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
       <stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
     </linearGradient>
@@ -286,8 +290,8 @@ export default function WebcamVideo() {
 
   <Area  type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Calmness" stroke="#8884d8" fillOpacity={1} fill="url(#colorCalmness)" />
   <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Interest" stroke="#83a6ed" fillOpacity={1} fill="url(#colorInterest)" />
-  <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Confusion" stroke="#a4de6c" fillOpacity={1} fill="url(#colorConfusion)" />
-  <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Awkwardness" stroke="#82ca9d" fillOpacity={1} fill="url(#colorAwkwardness)" />
+  <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Boredom" stroke="#a4de6c" fillOpacity={1} fill="url(#colorBoredom)" />
+  <Area type="monotone" animationDuration={500} isAnimationActive={false} dataKey="Joy" stroke="#82ca9d" fillOpacity={1} fill="url(#colorJoy)" />
 
 </AreaChart>
       </div>
