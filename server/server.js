@@ -66,7 +66,7 @@ app.post('/upload-video', upload.single('video'), async (req, res) => {
       })
       .run();
     
-    const pythonProcess = spawn('python3', ["./model/test.py", wavFileName]);
+    const pythonProcess = spawn('python3', ["./model/test.py", wavFileName, videoFileName]);
 
         pythonProcess.stdout.on('data', (data) => {
           console.log(data.toString());
