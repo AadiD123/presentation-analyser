@@ -218,5 +218,37 @@ app.get("/getvideo/:video_id", (req, res) => {
   );
 });
 
+app.post("/login/:email", (req, res) => {
+  const email = req.params.email;
+  connection.query(
+    `SELECT * FROM users WHERE user_id = '${email}'`,
+    (err, rows, fields) => {
+      if (err) {
+        console.log("Error in query");
+        res.status(500).send("Error in query");
+      } else {
+        if (rows.length === 0) {
+          // If user_id not found, insert a new row
+          connection.query(
+            `INSERT INTO users (user_id) VALUES ('${email}')`,
+            (insertErr, insertResult) => {
+              if (insertErr) {
+                console.log("Error inserting new user");
+                res.status(500).send("Error inserting new user");
+              } else {
+                // User added successfully, you can return a success response
+                res.status(200).send({ message: 'New user created' });
+              }
+            }
+          );
+        } else {
+          // User found, send the user data
+          res.status(200).send(rows[0]);
+        }
+      }
+    }
+  );
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -5,6 +5,7 @@ import { extMap, sortAndFilterEmotions } from "../utils/emotionFilter";
 import axios from "axios";
 import VideoPlayer from "./VideoPlayer";
 import ReactLoading from "react-loading";
+import { useAuth0 } from "@auth0/auth0-react";
 import {
   LineChart,
   Line,
@@ -36,6 +37,7 @@ export default function WebcamVideo() {
   const [blob, setBlob] = useState(null);
   const startTime = useRef(null);
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth0()
 
   const [emotionsMap, setEmotionsMap] = useState([
     {
@@ -122,14 +124,14 @@ export default function WebcamVideo() {
     }
   }, [chunks]);
 
-  const sendVideoToServer = async (blob) => {
+  const sendVideoToServer = useCallback(async (blob) => {
     try {
       const formData = new FormData();
       formData.append("video", blob, "recorded-video.webm");
       setBlob(blob);
-
+      
       await axios
-        .post("http://localhost:3000/upload-video", formData)
+        .post(`http://localhost:3000/upload-video/${user?.email ?? ''}`, formData)
         .then((res) => {
           console.log(res);
           setData(res.data);
@@ -138,7 +140,7 @@ export default function WebcamVideo() {
     } catch (error) {
       console.error("Error uploading video:", error);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (

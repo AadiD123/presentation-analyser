@@ -8,3 +8,4 @@ server/model/audio_files/
 server/model/tiny.pt
 server/model/whisper-timestamped/
 server/model/whisper-timestamped
+server/model/gaze_tracking/
