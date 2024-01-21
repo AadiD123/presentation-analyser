@@ -134,7 +134,7 @@ app.post("/upload-video", upload.single("video"), async (req, res) => {
             }));
             console.log(lines);
             parsedData["eyeContactPenalty"] = parseFloat(lines[i + 5]);
-            parsedData["eyeContactScore"] = parseFloat(lines[i + 6]);
+            parsedData["FinalScore"] = parseFloat(lines[i + 6]);
 
             input_data = JSON.parse(valid_json_str);
 
